@@ -1,0 +1,33 @@
+orthanc:
+  host: localhost
+  port: 8042
+  protocol: http
+  source_modality: PHOENIX
+  max_workers: 16
+
+db:
+  host: localhost
+  port: 5678
+  user: postgres
+  password: postgres
+  dbname: swag
+
+local_fs:
+  host: localhost
+  user: flaqua
+  rootdir: /home/group_data/shared_data/swag
+  datadir: data
+  tablesdir: data/tables
+  fname: instance_tags.csv
+
+dashboard:
+  page_title: 'swag-tag'
+  title: 'swag-tag: A Streamlit-based webapp for annotation of medical images and reports.'
+  window_default_range:
+    - 20
+    - 80
+  window_default_min_max:
+    {
+      min_value: 0,
+      max_value: 100,
+    }

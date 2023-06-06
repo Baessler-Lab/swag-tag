@@ -1,0 +1,14 @@
+streamlit>=1.19.0
+plotly>=5.13.1
+scipy
+pyyaml
+yaml
+python-kaleido
+simpleitk>=2.2.0
+psycopg2-binary>=2.9.3
+psycopg2>=2.9.3
+pandas>=1.5.0
+numpy>=1.23
+scipy
+SimpleITK>=2.2.0
+pydicom>=2.3.1
