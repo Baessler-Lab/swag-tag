@@ -31,3 +31,70 @@ dashboard:
       min_value: 0,
       max_value: 100,
     }
+
+sql:
+  image_uris_table:
+    {
+      table_name: 'image_uris',
+      columns:
+        {
+          'PatientID': 'character varying(256)',
+          'StudyInstanceUID': 'character varying(256)',
+          'SeriesInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'image_fp': 'character varying(256)',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'SeriesInstanceUID',
+      foreign_mapping:
+        {
+          'reports': 'AccessionNumber',
+        },
+    }
+  reports_table:
+    {
+      table_name: 'reports',
+      columns:
+        {
+          'PatientID': 'character varying(256)',
+          'StudyInstanceUID': 'character varying(256)',
+          'SeriesInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'report_fp': 'character varying(256)',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'AccessionNumber',
+      foreign_mapping:
+        {
+          'image_uris': 'StudyInstanceUID'
+        },
+    }
+  result_table:
+    {
+      table_name: 'annotations',
+      columns:
+        {
+          'annotation_id': 'character varying(256)',
+          'StudyInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'annotation': 'jsonb',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'annotation_id',
+      foreign_mapping:
+        {
+          'reports': 'AccessionNumber',
+          'image_uris': 'StudyInstanceUID'
+        },
+    }
+  config_table:
+    {
+      table_name: 'configuration',
+      columns:
+        {
+          'config_id': 'character varying(256)',
+          'annotation': 'jsonb',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'config_id',
+    }
