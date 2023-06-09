@@ -23,17 +23,17 @@ def connect_to_db(db_config: db_conf) -> connection:
     return conn
 
 
-def drob_db(db_conf: Mapping):
-    conn = connect_to_db(db_conf)
+def drop_db(db_config: Mapping):
+    conn = connect_to_db(db_config)
     cur = conn.cursor()
     conn.autocommit = True
     cur.execute(
-        f"DROP DATABASE {db_conf['dbname']} WITH(FORCE);"
+        f"DROP DATABASE {db_config['dbname']} WITH(FORCE);"
     )
     conn.close()
 
 
-def force_drop_db(db_config: Mapping):
+def force_drop_tables(db_config: Mapping):
     """
     Drop all tables of database you given.
     """
@@ -65,158 +65,71 @@ def force_drop_db(db_config: Mapping):
         conn.close()
 
 
-def create_db(db_conf: Mapping, sql_conf: Mapping):
-    conn = connect_to_db(db_conf)
+def create_db(db_config: Mapping):
+    conn = connect_to_db(db_config)
     conn.autocommit = True
     try:
         with conn.cursor() as cur:
-            cur.execute(f'CREATE DATABASE {db_conf["dbname"]}')
+            cur.execute(f'CREATE DATABASE {db_config["dbname"]}')
 
     finally:
         conn.close()
 
-    create_table(db_conf, sql_conf, xtra_tags={"study_tags": "StudyDateTime"})
-
 
 def create_table(
-        db_conf: Mapping,
-        sql_conf: Mapping,
-        xtra_tags: typing.Mapping[str, typing.List[str] | str] = None
+        table_conf: Mapping,
+        conn: psycopg2._psycopg.connection = None,
+        db_config: Mapping = None,
 ):
-    conn = connect_to_db(db_conf)
+    conn = connect_or_take_connection(conn=conn, db_config=db_config)
     conn.autocommit = True
     try:
         with conn.cursor() as cur:
-            # create a patient table
 
-            table_name = "patient_tags"
-            id = "PatientID"
-            tag_definitions = sql.SQL(', ').join([sql.SQL("{tag} character varying(256)").format(
-                tag=sql.Identifier(tag))
-                for tag in sql_conf["patient_tags"]
-                if tag not in sql_conf["id_levels"]])
-            constraints = sql.SQL("PRIMARY KEY ({id})").format(id=sql.Identifier(id))
+            tag_definitions = sql.SQL(', ').join(
+                [sql.SQL("{tag} {type}").format(
+                    tag=sql.Identifier(tag),
+                    type=type,
+                )
+                    for tag, type in table_conf['columns']]
+            )
+            constraints = sql.SQL(', ').join(
+                [sql.SQL("PRIMARY KEY ({prim_key})").format(prim_key=table_conf["prim_key"]), ] +
+                [sql.SQL("FOREIGN KEY ({foreign_id}) REFERENCES {foreign_table}").format(
+                    foreign_id=sql.Identifier(foreign_table),
+                    foreign_table=sql.Identifier(foreign_id)
+                ) for foreign_table, foreign_id in table_conf['foreign_mapping'].items()]
+            )
 
             create_cmd = sql.SQL(
                 """
                 CREATE TABLE {table_name} 
-                                    (
-                                        {tag_definitions},
-                                        {constraints}
-
-                                    )
-                                    WITH (
-                                        FILLFACTOR = 70
-                                    )
-                                    TABLESPACE pg_default;
+                (
+                    {tag_definitions}, 
+                    {constraints}
+                )
+                WITH (
+                    FILLFACTOR = 70
+                )
+                TABLESPACE pg_default;
                 """).format(
-                table_name=sql.Identifier(table_name),
-                pk_id=sql.Identifier(f"PK_{id}"),
+                table_name=sql.Identifier(table_conf["table_name"]),
+                # pk_id=sql.Identifier(f"PK_{id}"),
+                # id=sql.Identifier(id),
                 tag_definitions=tag_definitions,
                 constraints=constraints,
             )
-
-            log.warning(create_cmd)
+            log.info('Create cmd: %s', create_cmd)
             cur.execute(create_cmd)
-
-            # create a study table
-            # TODO: mk yaml out of this
-            study_spec = dict(
-                table_name="study_tags",
-                # id="StudyInstanceUID",
-                prim_key=sql.Identifier("StudyInstanceUID"),
-                foreign_id="PatientID",
-                foreign_table="patient_tags",
-            )
-            series_spec = dict(
-                table_name="series_tags",
-                prim_key=sql.Identifier("SeriesInstanceUID"),
-                foreign_id="StudyInstanceUID",
-                foreign_table="study_tags",
-            )
-            instance_spec = dict(
-                table_name="instance_tags",
-                id="InstanceNumber",
-                prim_key=sql.SQL(', ').join([
-                    sql.Identifier("InstanceNumber"),
-                    sql.Identifier("SeriesInstanceUID"),
-                ]),
-                foreign_id="SeriesInstanceUID",
-                # foreign_id="StudyInstanceUID",
-                foreign_table="series_tags",
-            )
-            table_specs = [
-                study_spec,
-                series_spec,
-                instance_spec,
-            ]
-
-            for table_spec in table_specs:
-                # add xtra_tags
-                tab_name = table_spec["table_name"]
-                cols_to_create = sql_conf[tab_name]
-
-                try:
-                    ts_tags_to_add = xtra_tags[tab_name]
-
-                except KeyError:
-                    # no tag for table_name
-                    ts_tags_to_add = []
-                    pass
-
-                tag_definitions = sql.SQL(', ').join(
-                    # [sql.SQL("{foreign_id} character varying(256)").format(
-                    #     foreign_id=sql.Identifier(table_spec["foreign_id"])), ] +
-
-                    [sql.SQL("{tag} character varying(256)").format(
-                        tag=sql.Identifier(tag))
-                        for tag in cols_to_create]
-                    # add timestamp directly in appropriate format TODO: Consider Timestamp in UTC
-                    + [sql.SQL("{tag} timestamp").format(tag=sql.Identifier(tag))
-                       for tag in ts_tags_to_add]
-                )
-                constraints = sql.SQL(', ').join(
-                    [sql.SQL("PRIMARY KEY ({prim_key})").format(prim_key=table_spec["prim_key"]),
-                     sql.SQL("FOREIGN KEY ({foreign_id}) REFERENCES {foreign_table}").format(
-                         foreign_id=sql.Identifier(table_spec["foreign_id"]),
-                         foreign_table=sql.Identifier(table_spec["foreign_table"])
-                     ),
-                     ]
-                )
-
-                create_cmd = sql.SQL(
-                    """
-                    CREATE TABLE {table_name} 
-                    (
-                        {tag_definitions}, 
-                        {constraints}
-                    )
-                    WITH (
-                        FILLFACTOR = 70
-                    )
-                    TABLESPACE pg_default;
-                    """).format(
-                    table_name=sql.Identifier(table_spec["table_name"]),
-                    # pk_id=sql.Identifier(f"PK_{id}"),
-                    # id=sql.Identifier(id),
-                    tag_definitions=tag_definitions,
-                    constraints=constraints,
-                )
-
-                log.warning(create_cmd)
-                cur.execute(create_cmd)
-
-            # create a table with jsonb column
-            cur.execute(
-                "CREATE TABLE instance_tags_json (id serial PRIMARY KEY, data jsonb)"
-            )
     finally:
-        conn.close()
+        pass
 
 
-def delete_table(table_name: str, db_config: Mapping = db_conf, ):
+def delete_table(table_name: str,
+                 conn: connection = None,
+                 db_config: Mapping = db_conf, ):
     try:
-        conn = psycopg2.connect(**db_config)
+        conn = connect_or_take_connection(conn, db_config)
         conn.set_isolation_level(0)
     except Exception as exc:
         raise RuntimeError("Unable to connect to the database.") from exc
@@ -271,11 +184,13 @@ def create_jsonb_table(table_name: str,
                        conn: connection = None,
                        db_conf: typing.Mapping = None,
                        ):
+    # define columns
     tag_definitions = sql.SQL(', ').join([
         sql.SQL("{tag} jsonb").format(tag=sql.Identifier(json_data_key)),
         sql.SQL("{tag} character varying(256)").format(tag=sql.Identifier(prim_id))
     ])
 
+    # define constraints
     constraints = sql.SQL(', ').join(
         [sql.SQL("PRIMARY KEY ({prim_key})").format(prim_key=sql.Identifier(prim_id)),
          ]

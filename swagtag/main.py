@@ -18,5 +18,5 @@ def app():
     sb = sidebar()
     image_spot = st.empty()
 
-    # display image
+    # display images
     st_image_box(image_spot, image_id=0)
