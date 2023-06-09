@@ -31,6 +31,15 @@ dashboard:
       min_value: 0,
       max_value: 100,
     }
+  max_img_buffer_size: 10
+  report_columns:
+    - 'indication'
+    - 'history'
+    - 'comparison'
+    - 'technique'
+    - 'findings'
+    - 'impression'
+
 
 sql:
   image_uris_table:
@@ -42,13 +51,31 @@ sql:
           'StudyInstanceUID': 'character varying(256)',
           'SeriesInstanceUID': 'character varying(256)',
           'AccessionNumber': 'character varying(256)',
-          'image_fp': 'character varying(256)',
+          'image_uri': 'character varying(256)',
           'creation_time': 'timestamp',
         },
       prim_key: 'SeriesInstanceUID',
       foreign_mapping:
         {
           'reports': 'AccessionNumber',
+        },
+    }
+  reports_uris_table:
+    {
+      table_name: 'reports',
+      columns:
+        {
+          'PatientID': 'character varying(256)',
+          'StudyInstanceUID': 'character varying(256)',
+          'SeriesInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'report_uri': 'character varying(256)',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'AccessionNumber',
+      foreign_mapping:
+        {
+          'image_uris': 'StudyInstanceUID'
         },
     }
   reports_table:
@@ -60,8 +87,14 @@ sql:
           'StudyInstanceUID': 'character varying(256)',
           'SeriesInstanceUID': 'character varying(256)',
           'AccessionNumber': 'character varying(256)',
-          'report_fp': 'character varying(256)',
+          'report_uri': 'character varying(256)',
           'creation_time': 'timestamp',
+          'indication': 'text',
+          'history': 'text',
+          'comparison': 'text',
+          'technique': 'text',
+          'findings': 'text',
+          'impression': 'text',
         },
       prim_key: 'AccessionNumber',
       foreign_mapping:
