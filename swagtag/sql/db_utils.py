@@ -334,60 +334,48 @@ def query_inference_data_as_json_into_db(
 
 
 def insert_into_db(
-        db_conf, dicom_dicts: list[dict[str, str]],
-        sql_conf: Mapping,
-        xtra_tags: typing.Mapping[str, typing.Sequence[str]] = None,
+        dicom_dicts: list[dict[str, str]],
+        conn: connection,
+        table_conf: Mapping,
+        db_config: Mapping = db_conf,
         upsert: bool = True,
 ):
-    conn = connect_to_db(db_conf)
+    conn = connect_or_take_connection(conn=conn, db_config=db_config)
     try:
         with conn.cursor() as cur:
             conn.autocommit = True
 
-            for name in sql_conf["table_names"]:
-                # add xtra_tags
-                cols_to_insert = sql_conf[name].copy()
-                if xtra_tags is not None:
-                    try:
-                        if isinstance(xtra_tags[name], list):
-                            cols_to_insert += xtra_tags[name]
-                        elif isinstance(xtra_tags[name], str):
-                            cols_to_insert.append(xtra_tags[name])
-                        else:
-                            raise NotImplementedError("Not yet considered. Provide list or string!")
-                    except KeyError:
-                        # no tag for table_name
-                        pass
+            cols_to_insert = list(table_conf['columns'].keys())
 
-                prim_keys = sql_conf["id_levels"][name]
-                if not isinstance(prim_keys, list):
-                    prim_keys = [prim_keys, ]
+            prim_keys = sql_conf["prim_key"]
+            if not isinstance(prim_keys, list):
+                prim_keys = [prim_keys, ]
 
-                # build insert statement
-                if not upsert:
-                    query = sql.SQL(
-                        "INSERT INTO {tab_name} ({col_names}) VALUES ({vals}) ON CONFLICT ({prim_key}) DO NOTHING;").format(
-                        tab_name=sql.Identifier(name),
-                        col_names=sql.SQL(', ').join(map(sql.Identifier, cols_to_insert)),
-                        vals=sql.SQL(', ').join(map(sql.Placeholder, cols_to_insert)),
-                        prim_key=sql.SQL(', ').join([sql.Identifier(prim_id) for prim_id in prim_keys])
-                    )
-                else:
-                    exclude_names = sql.SQL(', ').join(map(
-                        lambda x: sql.SQL("excluded.{col}").format(col=sql.Identifier(x)), cols_to_insert))
-                    query = sql.SQL(
-                        """INSERT INTO {tab_name} ({col_names}) VALUES ({vals})
-                         ON CONFLICT ({prim_key}) DO UPDATE SET ({col_names}) = ({ex_names});""").format(
-                        tab_name=sql.Identifier(name),
-                        col_names=sql.SQL(', ').join(map(sql.Identifier, cols_to_insert)),
-                        ex_names=exclude_names,
-                        vals=sql.SQL(', ').join(map(sql.Placeholder, cols_to_insert)),
-                        prim_key=sql.SQL(', ').join([sql.Identifier(prim_id) for prim_id in prim_keys])
-                    )
+            # build insert statement
+            if not upsert:
+                query = sql.SQL(
+                    "INSERT INTO {tab_name} ({col_names}) VALUES ({vals}) ON CONFLICT ({prim_key}) DO NOTHING;").format(
+                    tab_name=sql.Identifier(table_conf['table_name']),
+                    col_names=sql.SQL(', ').join(map(sql.Identifier, cols_to_insert)),
+                    vals=sql.SQL(', ').join(map(sql.Placeholder, cols_to_insert)),
+                    prim_key=sql.SQL(', ').join([sql.Identifier(prim_id) for prim_id in prim_keys])
+                )
+            else:
+                exclude_names = sql.SQL(', ').join(map(
+                    lambda x: sql.SQL("excluded.{col}").format(col=sql.Identifier(x)), cols_to_insert))
+                query = sql.SQL(
+                    """INSERT INTO {tab_name} ({col_names}) VALUES ({vals})
+                     ON CONFLICT ({prim_key}) DO UPDATE SET ({col_names}) = ({ex_names});""").format(
+                    tab_name=sql.Identifier(table_conf['table_name']),
+                    col_names=sql.SQL(', ').join(map(sql.Identifier, cols_to_insert)),
+                    ex_names=exclude_names,
+                    vals=sql.SQL(', ').join(map(sql.Placeholder, cols_to_insert)),
+                    prim_key=sql.SQL(', ').join([sql.Identifier(prim_id) for prim_id in prim_keys])
+                )
 
-                execute_batch(cur=cur, sql=query, argslist=dicom_dicts, page_size=1000)
+            execute_batch(cur=cur, sql=query, argslist=dicom_dicts, page_size=1000)
     finally:
-        conn.close()
+        pass
 
 
 def read_data_single(
@@ -427,16 +415,69 @@ def read_data_single(
         # conn.close()
 
 
-def read_data_separate(
+def read_table_to_df(
+        table_name: str,
+        prim_key: str,
+        ids_to_load: typing.List[str] = None,
+        cols_to_load: typing.List[str] = None,
+        conn: connection = None,
         db_conf: typing.Mapping = db_conf,
-        sql_conf: typing.Mapping = sql_conf,
-        levels: typing.List[str] = None  # ['instance_tags', 'series_tags', 'study_tags', 'patient_tags']
-):
+) -> pd.DataFrame:
+    if ids_to_load is None:
+        where_condition = ''
+    else:
+        where_condition = sql.SQL('WHERE {prim_key}=ANY({id_list})').format(
+            prim_key=prim_key,
+            id_list=sql.Placeholder()
+        )
+
+    if cols_to_load is None:
+        cols_to_load = '*'
+    else:
+        if prim_key not in cols_to_load:
+            cols_to_load.append(prim_key)
+        cols_to_load = map(sql.Identifier, cols_to_load)
+
+    if cols_to_load is None:
+        cols_to_load = '*'
+    else:
+        cols_to_load = map(sql.Identifier, cols_to_load)
+
+    query = sql.SQL("SELECT {colms} FROM {table_name} {where_stmt}").format(
+        table_name=sql.Identifier(table_name),
+        where_stmt=where_condition,
+        colms=cols_to_load
+    )
+
     # connect to db
-    conn = connect_to_db(db_conf=db_conf)
+    conn = connect_or_take_connection(db_config=db_conf, conn=conn)
+    try:
+        with conn.cursor() as cur:
+            if not where_condition == '':
+                cur.execute(query, [ids_to_load])
+            else:
+                cur.execute(query)
+            data = cur.fetchall()
+
+            cols = [col[0] for col in cur.description]
+
+            df = pd.DataFrame(data, columns=cols, )
+            df.set_index(keys=prim_key, inplace=True)
+            return df
+    finally:
+        pass
+
+
+def read_tables_to_dict_of_df(
+        db_conf: typing.Mapping = db_conf,
+        conn: connection = None,
+        table_names: typing.List[str] = None,
+) -> typing.Dict[str, pd.DataFrame]:
+    # connect to db
+    conn = connect_or_take_connection(db_config=db_conf, conn=conn)
     try:
         df_dict = {}
-        for table_name in levels:
+        for table_name in table_names:
             with conn.cursor() as cur:
                 cur.execute(
                     sql.SQL("SELECT * FROM {table_name}").format(table_name=sql.Identifier(table_name))
@@ -448,7 +489,7 @@ def read_data_separate(
             df_dict[table_name] = pd.DataFrame(data, columns=cols)
         return df_dict
     finally:
-        conn.close()
+        pass
 
 
 def read_data_join(
