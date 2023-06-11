@@ -2,8 +2,8 @@ import pandas as pd
 import streamlit as st
 
 from config.config import db_conf, sql_conf
-from io.image_buffer import load_images_for_study
-from io.report_load import load_report_for_study
+from data_load.image_buffer import load_images_for_study
+from data_load.report_load import load_report_for_study
 from sql.db_utils import connect_to_db, read_table_to_df
 
 
