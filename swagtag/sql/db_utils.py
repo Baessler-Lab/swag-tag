@@ -434,7 +434,7 @@ def read_table_to_df(
         db_conf: typing.Mapping = db_conf,
 ) -> pd.DataFrame:
     if ids_to_load is None:
-        where_condition = ''
+        where_condition = sql.SQL('')
     else:
         where_condition = sql.SQL('WHERE {prim_key}=ANY({id_list})').format(
             prim_key=prim_key,
@@ -446,12 +446,7 @@ def read_table_to_df(
     else:
         if prim_key not in cols_to_load:
             cols_to_load.append(prim_key)
-        cols_to_load = map(sql.Identifier, cols_to_load)
-
-    if cols_to_load is None:
-        cols_to_load = '*'
-    else:
-        cols_to_load = map(sql.Identifier, cols_to_load)
+        cols_to_load = sql.SQL(', ').join(map(sql.Identifier, cols_to_load))
 
     query = sql.SQL("SELECT {colms} FROM {table_name} {where_stmt}").format(
         table_name=sql.Identifier(table_name),
@@ -472,7 +467,10 @@ def read_table_to_df(
             cols = [col[0] for col in cur.description]
 
             df = pd.DataFrame(data, columns=cols, )
+            # set index col
             df.set_index(keys=prim_key, inplace=True)
+            # keep index in columns as well
+            df[prim_key] = df.index
             return df
     finally:
         pass
