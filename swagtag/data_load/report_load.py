@@ -20,8 +20,8 @@ def load_report_for_study(
     report_df = read_table_to_df(
         ids_to_load=[accession_number],
         cols_to_load=st.session_state['dash_conf']['report_columns'],  # None = all
-        table_name=sql_conf['reports_uris_table']['table_name'],
-        prim_key=sql_conf['reports_uris_table']['prim_key'],
+        table_name=sql_conf['reports_table']['table_name'],
+        prim_key=sql_conf['reports_table']['prim_key'],
         conn=conn,
     )
     report_series = report_df.squeeze()
