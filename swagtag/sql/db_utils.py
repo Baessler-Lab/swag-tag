@@ -1,13 +1,11 @@
 import logging
 import typing
-from collections import defaultdict
 from collections.abc import Mapping
+from copy import deepcopy
 from datetime import datetime
 
 import pandas as pd
 import psycopg2
-from arviz import InferenceData
-from arviz.data.base import _make_json_serializable
 from psycopg2 import sql
 from psycopg2._psycopg import connection
 from psycopg2.extras import Json, execute_batch
@@ -18,13 +16,19 @@ from config.config import db_conf, sql_conf
 log = logging.Logger(__name__)
 
 
+def connect_to_postgres_server(db_config: db_conf) -> connection:
+    cfg = deepcopy(db_config)
+    cfg.pop('dbname')
+    conn = psycopg2.connect(**cfg)
+    return conn
+
 def connect_to_db(db_config: db_conf) -> connection:
     conn = psycopg2.connect(**db_config)
     return conn
 
 
 def drop_db(db_config: Mapping):
-    conn = connect_to_db(db_config)
+    conn = connect_to_postgres_server(db_config)
     cur = conn.cursor()
     conn.autocommit = True
     cur.execute(
@@ -54,6 +58,7 @@ def force_drop_tables(db_config: Mapping):
             )
             rows = cur.fetchall()
             for row in rows:
+
                 log.warning("dropping table: %s" % row[1])
                 drop_stm = sql.SQL("DROP TABLE {tab_name} CASCADE;").format(tab_name=sql.Identifier(row[1]))
                 cur.execute(drop_stm)
@@ -66,7 +71,7 @@ def force_drop_tables(db_config: Mapping):
 
 
 def create_db(db_config: Mapping):
-    conn = connect_to_db(db_config)
+    conn = connect_to_postgres_server(db_config)
     conn.autocommit = True
     try:
         with conn.cursor() as cur:
@@ -89,15 +94,15 @@ def create_table(
             tag_definitions = sql.SQL(', ').join(
                 [sql.SQL("{tag} {type}").format(
                     tag=sql.Identifier(tag),
-                    type=type,
+                    type=sql.SQL(type),
                 )
-                    for tag, type in table_conf['columns']]
+                    for tag, type in table_conf['columns'].items()]
             )
             constraints = sql.SQL(', ').join(
-                [sql.SQL("PRIMARY KEY ({prim_key})").format(prim_key=table_conf["prim_key"]), ] +
-                [sql.SQL("FOREIGN KEY ({foreign_id}) REFERENCES {foreign_table}").format(
-                    foreign_id=sql.Identifier(foreign_table),
-                    foreign_table=sql.Identifier(foreign_id)
+                [sql.SQL("PRIMARY KEY ({prim_key})").format(prim_key=sql.Identifier(table_conf["prim_key"])), ] +
+                [sql.SQL("FOREIGN KEY ({foreign_id}) REFERENCES {foreign_table}({foreign_id})").format(
+                    foreign_table=sql.Identifier(foreign_table),
+                    foreign_id=sql.Identifier(foreign_id)
                 ) for foreign_table, foreign_id in table_conf['foreign_mapping'].items()]
             )
 
@@ -119,7 +124,8 @@ def create_table(
                 tag_definitions=tag_definitions,
                 constraints=constraints,
             )
-            log.info('Create cmd: %s', create_cmd)
+            # log.info('Create cmd: %s', create_cmd)
+            log.warning('Create cmd: %s', cur.mogrify(create_cmd))
             cur.execute(create_cmd)
     finally:
         pass
@@ -127,7 +133,8 @@ def create_table(
 
 def delete_table(table_name: str,
                  conn: connection = None,
-                 db_config: Mapping = db_conf, ):
+                 db_config: Mapping = db_conf,
+                 kill_conn: bool = False):
     try:
         conn = connect_or_take_connection(conn, db_config)
         conn.set_isolation_level(0)
@@ -146,7 +153,10 @@ def delete_table(table_name: str,
     except Exception as exc:
         raise RuntimeError("Error:") from exc
     finally:
-        conn.close()
+        if kill_conn:
+            conn.close()
+        else:
+            pass
 
 
 def post_to_db(db_conf, dicom_dicts: list[dict[str, str]]):
@@ -227,114 +237,114 @@ def create_jsonb_table(table_name: str,
         conn.close()
 
 
-def insert_inference_data_as_json_into_db(
-        trace: InferenceData | typing.Mapping[str, InferenceData],
-        table_name: str,
-        id: str = None,
-        prim_id: str = 'study_type',
-        conn: connection = None,
-        db_config: typing.Mapping = db_conf,
-):
-    #
-    if isinstance(trace, Mapping):
-        cols_to_insert = [prim_id, 'data']
-        values = [{prim_id: key, 'data': Json(_make_json_serializable(val.to_dict()))} for key, val in trace.items()]
+# def insert_inference_data_as_json_into_db(
+#         trace: InferenceData | typing.Mapping[str, InferenceData],
+#         table_name: str,
+#         id: str = None,
+#         prim_id: str = 'study_type',
+#         conn: connection = None,
+#         db_config: typing.Mapping = db_conf,
+# ):
+#     #
+#     if isinstance(trace, Mapping):
+#         cols_to_insert = [prim_id, 'data']
+#         values = [{prim_id: key, 'data': Json(_make_json_serializable(val.to_dict()))} for key, val in trace.items()]
+#
+#     elif isinstance(trace, InferenceData):
+#         if id is None:
+#             raise ValueError('You need to specify an id to store in the table')
+#         cols_to_insert = [prim_id, 'data']
+#         values = [{prim_id: id, 'data': Json(_make_json_serializable(trace.to_dict()))}]
+#     else:
+#         raise NotImplementedError('Please provide either a mapping or an InferenceData object together with id')
+#
+#     conn = connect_or_take_connection(conn, db_config)
+#     query = sql.SQL(
+#         """INSERT INTO {tab_name} ({col_names}) VALUES ({vals})
+#         ON CONFLICT ({prim_key}) DO UPDATE SET ({col_names}) = ({exclude_names});"""
+#     ).format(
+#         tab_name=sql.Identifier(table_name),
+#         col_names=sql.SQL(', ').join(map(sql.Identifier, cols_to_insert)),
+#         vals=sql.SQL(', ').join(map(sql.Placeholder, cols_to_insert)),
+#         prim_key=sql.Identifier(prim_id),
+#         exclude_names=sql.SQL(', ').join(map(
+#             lambda x: sql.SQL("excluded.{col}").format(col=sql.Identifier(x)), cols_to_insert))
+#     )
+#
+#     try:
+#         with conn.cursor() as cur:
+#             execute_batch(cur=cur, sql=query, argslist=values)
+#             conn.commit()
+#     finally:
+#         conn.close()
 
-    elif isinstance(trace, InferenceData):
-        if id is None:
-            raise ValueError('You need to specify an id to store in the table')
-        cols_to_insert = [prim_id, 'data']
-        values = [{prim_id: id, 'data': Json(_make_json_serializable(trace.to_dict()))}]
-    else:
-        raise NotImplementedError('Please provide either a mapping or an InferenceData object together with id')
 
-    conn = connect_or_take_connection(conn, db_config)
-    query = sql.SQL(
-        """INSERT INTO {tab_name} ({col_names}) VALUES ({vals}) 
-        ON CONFLICT ({prim_key}) DO UPDATE SET ({col_names}) = ({exclude_names});"""
-    ).format(
-        tab_name=sql.Identifier(table_name),
-        col_names=sql.SQL(', ').join(map(sql.Identifier, cols_to_insert)),
-        vals=sql.SQL(', ').join(map(sql.Placeholder, cols_to_insert)),
-        prim_key=sql.Identifier(prim_id),
-        exclude_names=sql.SQL(', ').join(map(
-            lambda x: sql.SQL("excluded.{col}").format(col=sql.Identifier(x)), cols_to_insert))
-    )
-
-    try:
-        with conn.cursor() as cur:
-            execute_batch(cur=cur, sql=query, argslist=values)
-            conn.commit()
-    finally:
-        conn.close()
-
-
-def query_inference_data_as_json_into_db(
-        table_name: str,
-        id: str | typing.Sequence[str] = None,
-        prim_id: str = 'study_type',
-        conn: connection = None,
-        db_config: typing.Mapping = None,
-) -> InferenceData | typing.Mapping[str, InferenceData]:
-    #
-    if isinstance(id, str):
-        id = [id]
-
-    if len(id) == 1:
-        in_any_sql = sql.SQL("= '{ids}'").format(ids=sql.SQL(id[0]))
-    elif id is None or len(id) == 0:
-        id = []
-        in_any_sql = sql.SQL("= '{ids}'").format(ids=sql.SQL(prim_id))
-    else:
-        in_any_sql = sql.SQL("IN ({ids})").format(ids=sql.SQL(',').join(id))
-
-        raise NotImplementedError('We will consider the default case in future ')
-
-    conn = connect_or_take_connection(conn, db_config)
-    query = sql.SQL(
-        "SELECT * FROM {tab_name} WHERE {prim_key} {in_any};").format(
-        # col_names=sql.SQL(', ').join(map(sql.Identifier, [prim_id, "data"])),
-        tab_name=sql.Identifier(table_name),
-        prim_key=sql.Identifier(prim_id),
-        in_any=in_any_sql,
-    )
-    # debug
-    # query = sql.SQL(
-    #     "SELECT * FROM {tab_name}").format(
-    #     # col_names=sql.SQL(', ').join(map(sql.Identifier, [prim_id, "data"])),
-    #     tab_name=sql.Identifier(table_name),
-    #     prim_key=sql.Identifier(prim_id),
-    #     in_any=in_any_sql,
-    # )
-    ret_mapping = defaultdict()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(query=query)
-            conn.commit()
-            data = cur.fetchall()
-            # convert to InferenceData
-            # ret = arviz.convert_to_dataset(dta_dict['data_vars'], coords=dta_dict['coords'], dims=dta_dict['dims'])  #, coords=coords, dims=dims)
-            # ret_mapping = {id[0]: xarray.Dataset.from_dict(tpl[0]) for tpl in data}
-            print(f"Key = {id[0]}, data_len = {len(data)}, conn= {conn} , query = {query}")
-            for tpl in data:
-                ret_mapping[tpl[1]] = tpl[0]
-            # from matplotlib import pyplot as plt
-            # for tpl in data:
-            #     # arviz.from_dict()
-            #     trace = arviz.from_dict(**tpl[0])
-            #     # ppc_trace = pymc.sample_posterior_predictive(trace)
-            #     arviz.plot_dist(trace.observed_data['pre_mix_likelihood'])
-            #     plt.show()
-
-            # return ret_mapping
-    except Exception as exc:
-        raise RuntimeError(f"Error while loading trace for {id}") from exc
-    finally:
-        return ret_mapping
+# def query_inference_data_as_json_into_db(
+#         table_name: str,
+#         id: str | typing.Sequence[str] = None,
+#         prim_id: str = 'study_type',
+#         conn: connection = None,
+#         db_config: typing.Mapping = None,
+# ) -> InferenceData | typing.Mapping[str, InferenceData]:
+#     #
+#     if isinstance(id, str):
+#         id = [id]
+#
+#     if len(id) == 1:
+#         in_any_sql = sql.SQL("= '{ids}'").format(ids=sql.SQL(id[0]))
+#     elif id is None or len(id) == 0:
+#         id = []
+#         in_any_sql = sql.SQL("= '{ids}'").format(ids=sql.SQL(prim_id))
+#     else:
+#         in_any_sql = sql.SQL("IN ({ids})").format(ids=sql.SQL(',').join(id))
+#
+#         raise NotImplementedError('We will consider the default case in future ')
+#
+#     conn = connect_or_take_connection(conn, db_config)
+#     query = sql.SQL(
+#         "SELECT * FROM {tab_name} WHERE {prim_key} {in_any};").format(
+#         # col_names=sql.SQL(', ').join(map(sql.Identifier, [prim_id, "data"])),
+#         tab_name=sql.Identifier(table_name),
+#         prim_key=sql.Identifier(prim_id),
+#         in_any=in_any_sql,
+#     )
+#     # debug
+#     # query = sql.SQL(
+#     #     "SELECT * FROM {tab_name}").format(
+#     #     # col_names=sql.SQL(', ').join(map(sql.Identifier, [prim_id, "data"])),
+#     #     tab_name=sql.Identifier(table_name),
+#     #     prim_key=sql.Identifier(prim_id),
+#     #     in_any=in_any_sql,
+#     # )
+#     ret_mapping = defaultdict()
+#     try:
+#         with conn.cursor() as cur:
+#             cur.execute(query=query)
+#             conn.commit()
+#             data = cur.fetchall()
+#             # convert to InferenceData
+#             # ret = arviz.convert_to_dataset(dta_dict['data_vars'], coords=dta_dict['coords'], dims=dta_dict['dims'])  #, coords=coords, dims=dims)
+#             # ret_mapping = {id[0]: xarray.Dataset.from_dict(tpl[0]) for tpl in data}
+#             print(f"Key = {id[0]}, data_len = {len(data)}, conn= {conn} , query = {query}")
+#             for tpl in data:
+#                 ret_mapping[tpl[1]] = tpl[0]
+#             # from matplotlib import pyplot as plt
+#             # for tpl in data:
+#             #     # arviz.from_dict()
+#             #     trace = arviz.from_dict(**tpl[0])
+#             #     # ppc_trace = pymc.sample_posterior_predictive(trace)
+#             #     arviz.plot_dist(trace.observed_data['pre_mix_likelihood'])
+#             #     plt.show()
+#
+#             # return ret_mapping
+#     except Exception as exc:
+#         raise RuntimeError(f"Error while loading trace for {id}") from exc
+#     finally:
+#         return ret_mapping
 
 
 def insert_into_db(
-        dicom_dicts: list[dict[str, str]],
+        dicom_dicts: typing.Sequence[typing.Mapping],
         conn: connection,
         table_conf: Mapping,
         db_config: Mapping = db_conf,
@@ -347,7 +357,7 @@ def insert_into_db(
 
             cols_to_insert = list(table_conf['columns'].keys())
 
-            prim_keys = sql_conf["prim_key"]
+            prim_keys = table_conf["prim_key"]
             if not isinstance(prim_keys, list):
                 prim_keys = [prim_keys, ]
 

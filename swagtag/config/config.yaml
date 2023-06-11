@@ -7,7 +7,7 @@ orthanc:
 
 db:
   host: localhost
-  port: 5678
+  port: 5001
   user: postgres
   password: postgres
   dbname: swag
@@ -15,9 +15,9 @@ db:
 local_fs:
   host: localhost
   user: flaqua
-  rootdir: /home/group_data/shared_data/swag
-  datadir: data
-  tablesdir: data/tables
+  rootdir: /home/group_data/shared_data/mimic
+  datadir: files
+  tablesdir: tables
   fname: instance_tags.csv
 
 dashboard:
@@ -33,6 +33,7 @@ dashboard:
     }
   max_img_buffer_size: 10
   report_columns:
+    - 'examination'
     - 'indication'
     - 'history'
     - 'comparison'
@@ -42,6 +43,46 @@ dashboard:
 
 
 sql:
+  study_table:
+    {
+      table_name: 'studies',
+      columns:
+        {
+          'PatientID': 'character varying(256)',
+          'StudyInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'StudyInstanceUID',
+      foreign_mapping:
+        {
+        },
+    }
+  reports_table:
+    {
+      table_name: 'reports',
+      columns:
+        {
+          'PatientID': 'character varying(256)',
+          'StudyInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'report_uri': 'character varying(256)',
+          'creation_time': 'timestamp',
+          'examination': 'text',
+          'indication': 'text',
+          'history': 'text',
+          'comparison': 'text',
+          'technique': 'text',
+          'findings': 'text',
+          'impression': 'text',
+        },
+      prim_key: 'AccessionNumber',
+      foreign_mapping:
+        {
+          'studies': 'StudyInstanceUID',
+        },
+    }
+
   image_uris_table:
     {
       table_name: 'image_uris',
@@ -58,50 +99,27 @@ sql:
       foreign_mapping:
         {
           'reports': 'AccessionNumber',
+          'studies': 'StudyInstanceUID',
         },
     }
-  reports_uris_table:
-    {
-      table_name: 'reports',
-      columns:
-        {
-          'PatientID': 'character varying(256)',
-          'StudyInstanceUID': 'character varying(256)',
-          'SeriesInstanceUID': 'character varying(256)',
-          'AccessionNumber': 'character varying(256)',
-          'report_uri': 'character varying(256)',
-          'creation_time': 'timestamp',
-        },
-      prim_key: 'AccessionNumber',
-      foreign_mapping:
-        {
-          'image_uris': 'StudyInstanceUID'
-        },
-    }
-  reports_table:
-    {
-      table_name: 'reports',
-      columns:
-        {
-          'PatientID': 'character varying(256)',
-          'StudyInstanceUID': 'character varying(256)',
-          'SeriesInstanceUID': 'character varying(256)',
-          'AccessionNumber': 'character varying(256)',
-          'report_uri': 'character varying(256)',
-          'creation_time': 'timestamp',
-          'indication': 'text',
-          'history': 'text',
-          'comparison': 'text',
-          'technique': 'text',
-          'findings': 'text',
-          'impression': 'text',
-        },
-      prim_key: 'AccessionNumber',
-      foreign_mapping:
-        {
-          'image_uris': 'StudyInstanceUID'
-        },
-    }
+  #  reports_uris_table:
+  #    {
+  #      table_name: 'reports_uris',
+  #      columns:
+  #        {
+  #          'PatientID': 'character varying(256)',
+  #          'StudyInstanceUID': 'character varying(256)',
+  #          'SeriesInstanceUID': 'character varying(256)',
+  #          'AccessionNumber': 'character varying(256)',
+  #          'report_uri': 'character varying(256)',
+  #          'creation_time': 'timestamp',
+  #        },
+  #      prim_key: 'AccessionNumber',
+  #      foreign_mapping:
+  #        {
+  #          'reports': 'AccessionNumber'
+  #        },
+  #    }
   result_table:
     {
       table_name: 'annotations',
@@ -117,7 +135,7 @@ sql:
       foreign_mapping:
         {
           'reports': 'AccessionNumber',
-          'image_uris': 'StudyInstanceUID'
+          'studies': 'StudyInstanceUID'
         },
     }
   config_table:
@@ -130,4 +148,8 @@ sql:
           'creation_time': 'timestamp',
         },
       prim_key: 'config_id',
+      foreign_mapping:
+        {
+        },
+
     }

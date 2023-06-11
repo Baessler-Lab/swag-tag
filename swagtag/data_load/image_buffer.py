@@ -3,8 +3,8 @@ from collections import Generator
 
 import pandas as pd
 
+from data_load.img_load import load_images_for_list_of_uris
 from image.itk_image import ImageBuffer
-from io.img_load import load_images_for_list_of_uris
 
 
 class image_generator(Generator):
