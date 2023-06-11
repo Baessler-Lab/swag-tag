@@ -442,7 +442,7 @@ def read_table_to_df(
         )
 
     if cols_to_load is None:
-        cols_to_load = '*'
+        cols_to_load = sql.SQL('*')
     else:
         if prim_key not in cols_to_load:
             cols_to_load.append(prim_key)
