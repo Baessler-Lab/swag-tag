@@ -1,9 +1,9 @@
 import streamlit as st
 
 from config.config import dash_conf
-from .st_utils.sidebar import sidebar
-from .st_utils.st_image import st_image_box
-from .st_utils.states import init_session_states
+from swagtag.st_utils.sidebar import sidebar
+from swagtag.st_utils.st_image import st_image_box
+from swagtag.st_utils.states import init_session_states
 
 
 def app():
@@ -19,4 +19,8 @@ def app():
     image_spot = st.empty()
 
     # display images
-    st_image_box(image_spot, image_id=0)
+    st_image_box(image_spot)
+
+
+if __name__ == '__main__':
+    app()
