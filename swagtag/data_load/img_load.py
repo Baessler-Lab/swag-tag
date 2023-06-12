@@ -34,7 +34,7 @@ def load_images_for_list_of_uris(
     return img_per_study
 
 
-@st.cache_data(max_entries=dash_conf['max_img_buffer_size'])
+# @st.cache_data(max_entries=dash_conf['max_img_buffer_size'])
 def load_single_uri_image(
         uri: str | os.PathLike,
         source: str = 'filesystem',
@@ -92,11 +92,13 @@ def load_single_uri_image(
             raise NotImplementedError('We currently support loading from orthanc and filesystem only.')
 
 
+@st.cache_data(max_entries=dash_conf['max_img_buffer_size'])
 def read_jpg(fpath: Path):
     img = sitk.ReadImage(fpath.absolute().__str__(), imageIO='JPEGImageIO')
     return img
 
 
+@st.cache_data(max_entries=dash_conf['max_img_buffer_size'])
 def read_nifti(fpath: Path):
     img = sitk.ReadImage(fpath.absolute().__str__(), imageIO='NiftiImageIO')
     return img

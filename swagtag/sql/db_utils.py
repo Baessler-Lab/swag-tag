@@ -433,11 +433,14 @@ def read_table_to_df(
         conn: connection = None,
         db_conf: typing.Mapping = db_conf,
 ) -> pd.DataFrame:
+    # mk deep copy in order not to alter the cols/ids provided
+    cols_to_load = deepcopy(cols_to_load)
+
     if ids_to_load is None:
         where_condition = sql.SQL('')
     else:
         where_condition = sql.SQL('WHERE {prim_key}=ANY({id_list})').format(
-            prim_key=prim_key,
+            prim_key=sql.Identifier(prim_key),
             id_list=sql.Placeholder()
         )
 
@@ -551,6 +554,67 @@ def read_data_join(
             return df
     finally:
         conn.close()
+
+
+def read_jsons_to_list_of_dicts(
+        table_name: str,
+        prim_key: str,
+        json_col: str,
+        timestamp_col: str = None,
+        ids_to_load: typing.List[str] = None,
+        acc_cols_to_load: typing.List[str] = None,
+        conn: connection = None,
+        db_conf: typing.Mapping = db_conf,
+) -> typing.List[dict]:
+    if ids_to_load is None:
+        where_condition = sql.SQL('')
+    else:
+        where_condition = sql.SQL('WHERE {prim_key}=ANY({id_list})').format(
+            prim_key=prim_key,
+            id_list=sql.Placeholder()
+        )
+
+    if timestamp_col is not None:
+        order_condition = sql.SQL('ORDER BY {ts}').format(ts=sql.Identifier(timestamp_col))
+    else:
+        order_condition = sql.SQL('')
+
+    # deepcopy to prevent alteration of mutable args
+    acc_cols_to_load = deepcopy(acc_cols_to_load)
+
+    if acc_cols_to_load is None:
+        acc_cols_to_load = sql.SQL('*')
+    else:
+        if prim_key not in acc_cols_to_load:
+            acc_cols_to_load.append(prim_key)
+        if json_col not in acc_cols_to_load:
+            acc_cols_to_load.append(json_col)
+        acc_cols_to_load = sql.SQL(', ').join(map(sql.Identifier, acc_cols_to_load))
+
+    query = sql.SQL("SELECT {colms} FROM {table_name} {where_stmt} {order_stmt}").format(
+        table_name=sql.Identifier(table_name),
+        where_stmt=where_condition,
+        colms=acc_cols_to_load,
+        order_stmt=order_condition,
+    )
+
+    # connect to db
+    conn = connect_or_take_connection(db_config=db_conf, conn=conn)
+    try:
+        with conn.cursor() as cur:
+            if not where_condition == '':
+                cur.execute(query, [ids_to_load])
+            else:
+                cur.execute(query)
+            data = cur.fetchall()
+
+            cols = [col[0] for col in cur.description]
+
+            ret_data = [{col: item for col, item in zip(cols, tpl)} for tpl in data]
+
+            return ret_data
+    finally:
+        pass
 
 
 def store_df_to_table(df: pd.DataFrame, if_exists='append', name: str = 'dashboard_table'):

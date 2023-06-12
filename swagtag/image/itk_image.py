@@ -8,41 +8,36 @@ from config.config import dash_conf
 
 
 class ImageBuffer(sitk.Image):
+    '''
+    Object wrapper class.
+    This a wrapper for objects. It is initialiesed with the object to wrap
+    and then proxies the unhandled getattribute methods to it.
+    Other classes are to inherit from it.
+    '''
+
+    # noinspection PyMissingConstructor
     def __init__(
-            self, *args,
+            self,
             img: sitk.Image,
+            *args,
             window_pct: typing.Tuple[float, float] = None,
             window_abs: typing.Tuple[float, float] = None,
             output_minmax: typing.Tuple[float, float] = (0, 255),
             **kwargs):
-        self = ImageBuffer.from_itk(img,
-                                    window_pct=window_pct,
-                                    window_abs=window_abs,
-                                    output_minmax=output_minmax,
-                                    )
+
+        # assert 3D image
+        if int(img.GetDimension()) == 2:
+            img = sitk.JoinSeries(img)
+        elif int(img.GetDimension()) == 3:
+            pass
+        else:
+            raise NotImplementedError(f'Images with {int(img.GetDimension())} dimensions not yet considered')
+
+        self._sitk_img = img
         self.windowed_img: sitk.Image
-        super().__init__(*args, **kwargs)
-
-    @property
-    def windowed_img(self) -> sitk.Image:
-        return self.windowed_img
-
-    @windowed_img.setter
-    def windowed_img(self, value):
-        self.windowed_img = value
-
-    @classmethod
-    def cast_from_itk(
-            cls,
-            image: sitk.Image,
-            window_pct: typing.Tuple[float, float] = None,
-            window_abs: typing.Tuple[float, float] = None,
-            output_minmax: typing.Tuple[float, float] = (0, 255),
-    ) -> 'ImageBuffer':
-        self = image
-
-        self.__class__ = ImageBuffer
-        self: ImageBuffer
+        self.__class__ = type(img.__class__.__name__,
+                              (self.__class__, img.__class__),
+                              {})
 
         if window_pct is not None:
             self.window_pct = window_pct
@@ -68,6 +63,41 @@ class ImageBuffer(sitk.Image):
         # apply windowing
 
         self.apply_window()
+
+    # def __setattr__(self, name, value):
+    #     setattr(self._sitk_img, name, value)
+
+    def __getattr__(self, attr):
+        # see if this object has attr
+        # NOTE do not use hasattr, it goes into
+        # infinite recursion
+        if attr in self.__dict__:
+            # this object has it
+            return getattr(self, attr)
+        # proxy to the wrapped object
+        return getattr(self._sitk_img, attr)
+
+    # @property
+    # def windowed_img(self) -> sitk.Image:
+    #     return self.windowed_img
+
+    # @windowed_img.setter
+    # def windowed_img(self, value):
+    #     self.windowed_img = value
+
+    @classmethod
+    def cast_from_itk(
+            cls,
+            image: sitk.Image,
+            window_pct: typing.Tuple[float, float] = None,
+            window_abs: typing.Tuple[float, float] = None,
+            output_minmax: typing.Tuple[float, float] = (0, 255),
+    ) -> 'ImageBuffer':
+
+        self = cls(
+            img=image,
+        )
+
         return self
 
     def set_window(
@@ -93,7 +123,7 @@ class ImageBuffer(sitk.Image):
 
     def apply_window(self):
         self.windowed_img = sitk.IntensityWindowing(
-            self,
+            self._sitk_img,
             windowMinimum=self.window_abs[0],
             windowMaximum=self.window_abs[1],
             outputMinimum=self.output_minmax[0],
@@ -106,10 +136,42 @@ class ImageBuffer(sitk.Image):
     def windowed_view_2D_slice(
             self, slice_no: int = 0,
     ) -> np.ndarray:
-        return sitk.GetArrayViewFromImage(self.windowed_img[:, :, slice_no])
+        # slice_no should not exceed z-axis limits
+        if slice_no >= int(self._sitk_img.GetSize()[-1]):
+            slice_no = self._sitk_img.GetSize()[-1] - 1
 
+        return sitk.GetArrayViewFromImage(self.windowed_img)[slice_no, :, :, ]
+
+    def windowed_array_2D_slice(
+            self, slice_no: int = 0,
+    ) -> np.ndarray:
+        # slice_no should not exceed z-axis limits
+        if slice_no >= int(self._sitk_img.GetSize()[-1]):
+            slice_no = self._sitk_img.GetSize()[-1] - 1
+
+        return sitk.GetArrayFromImage(self.windowed_img)[slice_no, :, :, ]
+
+    # @property
     def original(self) -> sitk.Image:
-        return self
+        return self._sitk_img
+
+    def original_view_2D_slice(
+            self, slice_no: int = 0,
+    ) -> np.ndarray:
+        # slice_no should not exceed z-axis limits
+        if slice_no >= int(self._sitk_img.GetSize()[-1]):
+            slice_no = self._sitk_img.GetSize()[-1] - 1
+
+        return sitk.GetArrayViewFromImage(self.original())[slice_no, :, :, ]
+
+    def original_array_2D_slice(
+            self, slice_no: int = 0,
+    ) -> np.ndarray:
+        # slice_no should not exceed z-axis limits
+        if slice_no >= int(self._sitk_img.GetSize()[-1]):
+            slice_no = self._sitk_img.GetSize()[-1] - 1
+
+        return sitk.GetArrayFromImage(self.original())[slice_no, :, :, ]
 
 
 def clone_img(img: sitk.Image) -> sitk.Image:

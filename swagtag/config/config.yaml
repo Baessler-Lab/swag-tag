@@ -140,13 +140,14 @@ sql:
     }
   config_table:
     {
-      table_name: 'configuration',
+      table_name: 'dash_conf',
       columns:
         {
           'config_id': 'character varying(256)',
-          'annotation': 'jsonb',
+          'config_json': 'jsonb',
           'creation_time': 'timestamp',
         },
+      json_col: 'config_json',
       prim_key: 'config_id',
       foreign_mapping:
         {
