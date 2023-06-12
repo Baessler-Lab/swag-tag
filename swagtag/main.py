@@ -23,6 +23,7 @@ def app():
         fig_spots = st_image_box(image_spot)
     with c1:
         st_report_box()
+        st_annotation_box()
 
     # sidebar
     sb = sidebar(fig_spots)

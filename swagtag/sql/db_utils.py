@@ -15,12 +15,15 @@ from config.config import db_conf, sql_conf
 
 log = logging.Logger(__name__)
 
+psycopg2.extensions.register_adapter(dict, Json)
+
 
 def connect_to_postgres_server(db_config: db_conf) -> connection:
     cfg = deepcopy(db_config)
     cfg.pop('dbname')
     conn = psycopg2.connect(**cfg)
     return conn
+
 
 def connect_to_db(db_config: db_conf) -> connection:
     conn = psycopg2.connect(**db_config)
@@ -559,8 +562,8 @@ def read_data_join(
 def read_jsons_to_list_of_dicts(
         table_name: str,
         prim_key: str,
-        json_col: str,
         timestamp_col: str = None,
+        json_col: str = None,
         ids_to_load: typing.List[str] = None,
         acc_cols_to_load: typing.List[str] = None,
         conn: connection = None,
@@ -570,7 +573,7 @@ def read_jsons_to_list_of_dicts(
         where_condition = sql.SQL('')
     else:
         where_condition = sql.SQL('WHERE {prim_key}=ANY({id_list})').format(
-            prim_key=prim_key,
+            prim_key=sql.Identifier(prim_key),
             id_list=sql.Placeholder()
         )
 
@@ -587,7 +590,7 @@ def read_jsons_to_list_of_dicts(
     else:
         if prim_key not in acc_cols_to_load:
             acc_cols_to_load.append(prim_key)
-        if json_col not in acc_cols_to_load:
+        if json_col not in acc_cols_to_load and json_col is not None:
             acc_cols_to_load.append(json_col)
         acc_cols_to_load = sql.SQL(', ').join(map(sql.Identifier, acc_cols_to_load))
 
@@ -600,12 +603,14 @@ def read_jsons_to_list_of_dicts(
 
     # connect to db
     conn = connect_or_take_connection(db_config=db_conf, conn=conn)
+
     try:
         with conn.cursor() as cur:
             if not where_condition == '':
                 cur.execute(query, [ids_to_load])
             else:
                 cur.execute(query)
+            conn.commit()
             data = cur.fetchall()
 
             cols = [col[0] for col in cur.description]

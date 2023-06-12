@@ -23,13 +23,18 @@ def st_image_box(fig_spot: st.container):
         # show windowed images
         for im_no, img in enumerate(imgs):
             img_spots.append(st.image(
-                # image=img.windowed_array_2D_slice(slice_no=st.session_state['slice_no']),
+                image=img.windowed_array_2D_slice(slice_no=st.session_state['slice_no']),
                 use_column_width=True,
             ))
 
         update_fig_window(img_spots)
         return img_spots
 
+
+def callback_window_border_slider(img_spots: typing.List[st.empty]):
+    if 'window_border_slider' in st.session_state:
+        st.session_state['window_borders'] = st.session_state['window_border_slider']
+    update_fig_window(img_spots)
 
 def update_fig_window(img_spots: typing.List[st.empty]):
     for img_spot, img in zip(img_spots, st.session_state['images']):
