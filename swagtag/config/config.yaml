@@ -21,8 +21,10 @@ local_fs:
   fname: instance_tags.csv
 
 dashboard:
+  config_id: 'default'
   page_title: 'swag-tag'
   title: 'swag-tag: A Streamlit-based webapp for annotation of medical images and reports.'
+  default_case_no: 0
   window_default_range:
     - 20
     - 80
@@ -149,6 +151,7 @@ sql:
         },
       json_col: 'config_json',
       prim_key: 'config_id',
+      timestamp_col: 'creation_time',
       foreign_mapping:
         {
         },

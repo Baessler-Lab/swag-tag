@@ -32,7 +32,7 @@ def parse_txt_reports(
 
 def scrape_filetree_and_save_to_database():
     create_or_check_db_and_tables(
-        replace_db=True, replace_tables=True,
+        replace_db=False, replace_tables=False,
         db_config=db_conf,
         sql_config=sql_conf)
     conn = connect_to_db(db_config=db_conf)

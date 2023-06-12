@@ -6,6 +6,7 @@ from config.load_config import load_dash_conf
 from data_load.image_buffer import load_images_for_study
 from data_load.report_load import load_report_for_study
 from sql.db_utils import connect_to_db, read_table_to_df
+from sql.init_db import create_or_check_db_and_tables
 
 
 def update_case(case_no: int):
@@ -40,6 +41,21 @@ def update_report(inplace: bool = True):
         return report
 
 
+def update_config():
+    if st.session_state.latest:
+        config_id = None
+    else:
+        config_id = st.session_state['selected_config_id']
+    st.session_state['dash_conf'] = load_dash_conf(
+        conn=st.session_state.db_conn,
+        config_id=config_id,
+        default=False,
+    )
+    update_case(st.session_state['dash_conf']['default_case_no'])
+    update_images(inplace=True)
+    update_report(inplace=True)
+
+
 @st.cache_data
 def get_mapping_study_instance_uid_to_accession_number() -> pd.DataFrame:
     return read_table_to_df(
@@ -47,7 +63,7 @@ def get_mapping_study_instance_uid_to_accession_number() -> pd.DataFrame:
         cols_to_load=['StudyInstanceUID', 'AccessionNumber'],
         prim_key=sql_conf['image_uris_table']['prim_key'],
         conn=st.session_state['db_conn'],
-    ).drop_duplicates(inplace=False)
+    ).drop_duplicates(subset=['StudyInstanceUID', 'AccessionNumber'], inplace=False)
 
 
 @st.cache_data
@@ -68,6 +84,14 @@ def lookup_accession_number(df: pd.DataFrame, study_instance_uid: str) -> str:
 
 
 def init_session_states():
+    # init database
+    if 'table_inited' not in st.session_state:
+        st.session_state['table_inited'] = True
+        create_or_check_db_and_tables(
+            replace_db=False, replace_tables=False,
+            db_config=db_conf,
+            sql_config=sql_conf)
+
     # connect to database
     if 'db_conn' not in st.session_state:
         st.session_state['db_conn'] = connect_to_db(db_config=db_conf)
@@ -85,7 +109,7 @@ def init_session_states():
 
     # init case iterator
     if 'case_no' not in st.session_state:
-        st.session_state['case_no'] = 0
+        st.session_state['case_no'] = st.session_state.dash_conf['default_case_no']
     update_case(st.session_state['case_no'])
 
     # load images into case iterator
