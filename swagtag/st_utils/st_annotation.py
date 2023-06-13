@@ -48,12 +48,13 @@ def st_annotation_box():
 
 def store_annotation_callback():
     annotation_dict = {}
-    for tag in st.session_state['tags']:
+    for tag in st.session_state.dash_conf['annotation_tags']:
         annotation_meta = defaultdict(lambda: 0)
-        annotation_meta.update({
-            'probability': int(st.session_state[f'annotation_proba_{tag}']),
-            'severity': int(st.session_state[f'annotation_severity_{tag}']),
-        })
+        if tag in tag in st.session_state['tags']:
+            annotation_meta.update({
+                'probability': int(st.session_state[f'annotation_proba_{tag}']),
+                'severity': int(st.session_state[f'annotation_severity_{tag}']),
+            })
         annotation_dict[tag] = annotation_meta
     # print(annotation_dict)
 
