@@ -14,6 +14,9 @@ def update_case(case_no: int):
     st.session_state['cur_study_instance_uid'] = st.session_state['map_study_instance_uid_accession_number'].iloc[
         st.session_state['case_no']
     ].loc['StudyInstanceUID']
+    st.session_state['cur_accession_number'] = st.session_state['map_study_instance_uid_accession_number'].iloc[
+        st.session_state['case_no']
+    ].loc['AccessionNumber']
 
 
 def update_images(inplace: bool = True):
@@ -98,7 +101,11 @@ def init_session_states():
 
     # load dashboard config
     if 'dash_conf' not in st.session_state:
-        st.session_state['dash_conf'] = load_dash_conf()
+        st.session_state['dash_conf'] = load_dash_conf(
+            conn=st.session_state.db_conn,
+            config_id='default',
+            default=False,
+        )
 
     # load cases
     if 'map_study_instance_uid_accession_number' not in st.session_state:

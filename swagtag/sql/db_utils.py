@@ -358,7 +358,7 @@ def insert_into_db(
         with conn.cursor() as cur:
             conn.autocommit = True
 
-            cols_to_insert = list(table_conf['columns'].keys())
+            cols_to_insert = [col for col, type in table_conf['columns'].items() if not 'SERIAL' in type]
 
             prim_keys = table_conf["prim_key"]
             if not isinstance(prim_keys, list):

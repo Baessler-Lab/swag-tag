@@ -75,7 +75,7 @@ def lookup_label_from_config_meta(
 
 
 def store_configuration(config_id: str, dashboard_configuration: typing.MutableMapping, conn: connection):
-    vals_to_insert = defaultdict(None)
+    vals_to_insert = defaultdict(lambda: None)
     vals_to_insert[sql_conf['config_table']['timestamp_col']] = datetime.utcnow()
     vals_to_insert[sql_conf['config_table']['prim_key']] = config_id
     dashboard_configuration['config_id'] = config_id
