@@ -32,6 +32,9 @@ def create_or_check_db_and_tables(
     # connect to db
     conn = connect_to_db(db_config=db_config)
     try:
+        # DEBUG:
+        delete_table(table_name=sql_config['result_table']['table_name'], conn=conn)
+
         # create table if not there
         for table, table_conf in sql_config.items():
             try:
