@@ -1,22 +1,34 @@
 import streamlit as st
 
-from config.config import dash_conf
-from .st_utils.sidebar import sidebar
-from .st_utils.st_image import st_image_box
-from .st_utils.states import init_session_states
+from config.load_config import load_dash_conf
+from swagtag.st_utils.sidebar import sidebar
+from swagtag.st_utils.st_annotation import st_annotation_box
+from swagtag.st_utils.st_image import st_image_box
+from swagtag.st_utils.st_report import st_report_box
+from swagtag.st_utils.states import init_session_states
 
 
 def app():
     st.set_page_config(
-        page_title=dash_conf['page_title'],
+        page_title=load_dash_conf(default=True)['page_title'],
         layout="wide",
     )
-    st.title(dash_conf['title'])
-
     init_session_states()
 
-    sb = sidebar()
-    image_spot = st.empty()
+    st.title(st.session_state.dash_conf['title'])
 
-    # display images
-    st_image_box(image_spot, image_id=0)
+    c1, c2 = st.columns((1, 2))
+    with c2:
+        image_spot = st.container()
+        # display images
+        fig_spots = st_image_box(image_spot)
+    with c1:
+        st_report_box()
+        st_annotation_box()
+
+    # sidebar
+    sb = sidebar(fig_spots)
+
+
+if __name__ == '__main__':
+    app()

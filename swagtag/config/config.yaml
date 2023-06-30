@@ -21,8 +21,10 @@ local_fs:
   fname: instance_tags.csv
 
 dashboard:
+  config_id: 'default'
   page_title: 'swag-tag'
   title: 'swag-tag: A Streamlit-based webapp for annotation of medical images and reports.'
+  default_case_no: 0
   window_default_range:
     - 20
     - 80
@@ -40,6 +42,35 @@ dashboard:
     - 'technique'
     - 'findings'
     - 'impression'
+  annotation_tags:
+    - 'pneumonia/infiltrate'
+    - 'pneumothorax'
+    - 'fracture'
+    - 'congestion/edema'
+    - 'pleural efusion'
+    - 'cardiomegaly'
+    - 'atelectasis'
+    - 'mass'
+    - 'abscess'
+    - 'free air'
+    - 'misplaced/defect foreign body'
+  annotation_probability:
+    {
+      0: 'absent',
+      1: 'possible',
+      2: 'highly likely/certain',
+    }
+  annotation_severity:
+    {
+      0: 'irrelevant',
+      1: 'relevant but not urgent',
+      2: 'relevant, urgent response (~1 day)',
+      3: 'relevant, immediate response',
+    }
+  default_tags: [ ]
+  default_annotation_probability: 0
+  default_annotation_severity: 0
+
 
 
 sql:
@@ -125,13 +156,15 @@ sql:
       table_name: 'annotations',
       columns:
         {
-          'annotation_id': 'character varying(256)',
+          'annotation_id': 'SERIAL',
           'StudyInstanceUID': 'character varying(256)',
           'AccessionNumber': 'character varying(256)',
-          'annotation': 'jsonb',
+          'annotation_json': 'jsonb',
           'creation_time': 'timestamp',
         },
       prim_key: 'annotation_id',
+      timestamp_col: 'creation_time',
+      json_col: 'annotation_json',
       foreign_mapping:
         {
           'reports': 'AccessionNumber',
@@ -140,14 +173,16 @@ sql:
     }
   config_table:
     {
-      table_name: 'configuration',
+      table_name: 'dash_conf',
       columns:
         {
           'config_id': 'character varying(256)',
-          'annotation': 'jsonb',
+          'config_json': 'jsonb',
           'creation_time': 'timestamp',
         },
+      json_col: 'config_json',
       prim_key: 'config_id',
+      timestamp_col: 'creation_time',
       foreign_mapping:
         {
         },
