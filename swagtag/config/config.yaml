@@ -67,6 +67,9 @@ dashboard:
       2: 'relevant, urgent response (~1 day)',
       3: 'relevant, immediate response',
     }
+  default_tags: [ ]
+  default_annotation_probability: 0
+  default_annotation_severity: 0
 
 
 

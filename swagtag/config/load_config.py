@@ -37,6 +37,11 @@ def load_dash_conf(
                 conn=conn,
             )
             latest_dashboard_config = configs_list[-1][sql_conf['config_table']['json_col']]
+            # check for missing keys and default do dash_conf
+            for key in dash_conf.keys():
+                if key not in latest_dashboard_config:
+                    latest_dashboard_config[key] = dash_conf[key]
+
             return latest_dashboard_config
         except Exception as exc:
             log.exception('Error loading the config from the database. Default config is returned instead.')

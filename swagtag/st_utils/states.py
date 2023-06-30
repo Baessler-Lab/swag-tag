@@ -1,6 +1,9 @@
+from collections import defaultdict
+
 import pandas as pd
 import streamlit as st
 
+from annotation.io import load_annotations
 from config.config import db_conf, sql_conf
 from config.load_config import load_dash_conf
 from data_load.image_buffer import load_images_for_study
@@ -44,6 +47,58 @@ def update_report(inplace: bool = True):
         return report
 
 
+def update_annotation(inplace: bool = True, annotation_id: str = None) -> None | dict:
+    """
+
+    :param inplace: if true, the session_state 'current_annotation' is overwritten
+    :param annotation_id: defaults to None, then the last annotation is returned/set
+    :return: (only if not inplace) a dict containing the annotation info
+    """
+    annotations = load_annotations(
+        study_instance_uid=st.session_state['cur_study_instance_uid'],
+        conn=st.session_state['db_conn']
+    )
+    if len(annotations) == 0:
+        # no stored annotation
+        # set defaults
+        annotation = {}
+        for tag in st.session_state.dash_conf['annotation_tags']:
+            annotation_meta = defaultdict(lambda: 0)
+            # if tag in tag in st.session_state['tags']:
+            annotation_meta.update({
+                'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
+                'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
+            })
+            annotation[tag] = annotation_meta
+    else:
+        if annotation_id is not None:
+            annotation = annotations[annotation_id][sql_conf['result_table']['json_col']]
+        else:
+            annotation = next(reversed(annotations.values()))[sql_conf['result_table']['json_col']]
+
+    # identify non-zero tags (backward-compatibility):
+    active_tags = []
+    for tag in annotation.keys():
+        try:
+            proba = annotation[tag]['probability']
+            if proba > 0:
+                active_tags.append(tag)
+        except KeyError:
+            # backward compatibility for empty annotation_tags
+            annotation[tag] = {
+                'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
+                'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
+            }
+            # pass
+
+    annotation['tags'] = active_tags
+    if inplace:
+        st.session_state['current_annotations'] = annotations
+        st.session_state['current_annotation'] = annotation
+    else:
+        return annotation
+
+
 def update_config():
     if st.session_state.latest:
         config_id = None
@@ -57,6 +112,7 @@ def update_config():
     update_case(st.session_state['dash_conf']['default_case_no'])
     update_images(inplace=True)
     update_report(inplace=True)
+    update_annotation(inplace=True)
 
 
 @st.cache_data
@@ -134,3 +190,7 @@ def init_session_states():
     # load reports into case iterator
     if 'report' not in st.session_state:
         st.session_state['report'] = update_report(inplace=False)
+
+    # load annotations for the case into case iterator
+    if 'current_annotation' not in st.session_state:
+        st.session_state['current_annotation'] = update_annotation(inplace=False)

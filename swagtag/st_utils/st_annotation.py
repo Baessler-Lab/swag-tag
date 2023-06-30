@@ -10,7 +10,7 @@ def st_annotation_box():
     st.multiselect(
         label='Tags',
         options=st.session_state.dash_conf['annotation_tags'],
-        default=[],
+        default=st.session_state.current_annotation['tags'],
         key='tags',
     )
     with st.form('annotation_form'):
@@ -21,7 +21,7 @@ def st_annotation_box():
                 st.markdown(f'### {tag} ###')
                 st.radio(
                     label='Probability',
-                    index=0,
+                    index=st.session_state.current_annotation[tag]['probability'],
                     options=list(st.session_state.dash_conf['annotation_probability']),
                     format_func=lambda x: st.session_state.dash_conf['annotation_probability'][x],
                     label_visibility=visibility,
@@ -31,7 +31,7 @@ def st_annotation_box():
 
                 st.radio(
                     label='Severity & urgency',
-                    index=0,
+                    index=st.session_state.current_annotation[tag]['severity'],
                     options=list(st.session_state.dash_conf['annotation_severity']),
                     format_func=lambda x: st.session_state.dash_conf['annotation_severity'][x],
                     label_visibility=visibility,
@@ -55,6 +55,11 @@ def store_annotation_callback():
                 'probability': int(st.session_state[f'annotation_proba_{tag}']),
                 'severity': int(st.session_state[f'annotation_severity_{tag}']),
             })
+        else:
+            annotation_meta.update({
+                'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
+                'severity': int(st.session_state[f'default_annotation_severity']),
+            })
         annotation_dict[tag] = annotation_meta
     # print(annotation_dict)
 
@@ -64,3 +69,4 @@ def store_annotation_callback():
         annotation=annotation_dict,
         conn=st.session_state['db_conn']
     )
+    st.success('Successfully stored your annotation.')

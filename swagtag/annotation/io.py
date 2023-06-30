@@ -5,7 +5,7 @@ from datetime import datetime
 from psycopg2._psycopg import connection
 
 from config.config import sql_conf
-from sql.db_utils import insert_into_db
+from sql.db_utils import insert_into_db, read_jsons_to_list_of_dicts
 
 
 # noinspection PyTypeChecker
@@ -29,3 +29,20 @@ def save_annotation(study_instance_uid: str,
         table_conf=sql_conf['result_table'],
         upsert=True,
     )
+
+
+# noinspection PyTypeChecker
+def load_annotations(study_instance_uid: str,
+                     conn: connection) -> typing.Dict[str, typing.Dict[str, dict]]:
+    # read annotations from database
+    annotations = read_jsons_to_list_of_dicts(
+        table_name=sql_conf['result_table']['table_name'],
+        acc_cols_to_load=[sql_conf['result_table']['prim_key'], sql_conf['result_table']['timestamp_col']],
+        json_col=sql_conf['result_table']['json_col'],
+        timestamp_col=sql_conf['result_table']['timestamp_col'],
+        prim_key='StudyInstanceUID',
+        ids_to_load=[study_instance_uid],
+        conn=conn,
+    )
+
+    return {annotation[sql_conf['result_table']['prim_key']]: annotation for annotation in annotations}
