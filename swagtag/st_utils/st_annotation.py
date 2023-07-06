@@ -57,8 +57,8 @@ def store_annotation_callback():
             })
         else:
             annotation_meta.update({
-                'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
-                'severity': int(st.session_state[f'default_annotation_severity']),
+                'probability': int(st.session_state.dash_conf['default_annotation_probability']),
+                'severity': int(st.session_state.dash_conf['default_annotation_severity']),
             })
         annotation_dict[tag] = annotation_meta
     # print(annotation_dict)
