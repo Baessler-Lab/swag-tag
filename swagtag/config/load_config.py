@@ -92,3 +92,4 @@ def store_configuration(config_id: str, dashboard_configuration: typing.MutableM
         table_conf=sql_conf['config_table'],
         upsert=True,
     )
+

@@ -46,9 +46,9 @@ def scrape_filetree_and_save_to_database():
             imagepaths have style PatientID/StudyInstanceUID/SeriesInstanceUID.jpeg
             """
 
-            # DEBUG:
-            if k >= 5:
-                break
+            # # DEBUG:
+            # if k >= 5:
+            #     break
 
             patient_id = report_fpath.parent.parts[-1].__str__()
             study_instance_uid = report_fpath.stem

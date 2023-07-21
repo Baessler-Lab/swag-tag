@@ -7,9 +7,9 @@ orthanc:
 
 db:
   host: localhost
-  port: 5001
+  port: 5002
   user: postgres
-  password: postgres
+  password: SmilelikeyouMeanIt
   dbname: swag
 
 local_fs:
@@ -54,6 +54,10 @@ dashboard:
     - 'abscess'
     - 'free air'
     - 'misplaced/defect foreign body'
+    - 'aspiration'
+    - 'hiatal hernia'
+    - 'fibrosis'
+    - 'emphysema'
   annotation_probability:
     {
       0: 'absent',
@@ -67,10 +71,24 @@ dashboard:
       2: 'relevant, urgent response (~1 day)',
       3: 'relevant, immediate response',
     }
+  annotation_side:
+    {
+      0: 'irrelevant',
+      1: 'left',
+      2: 'right',
+      3: 'both',
+    }
+  annotation_height:
+    {
+      1: 'lower',
+      2: 'middle',
+      3: 'upper',
+    }
   default_tags: [ ]
   default_annotation_probability: 0
   default_annotation_severity: 0
-
+  default_annotation_side: 0
+  default_annotation_height: [ ]
 
 
 sql:

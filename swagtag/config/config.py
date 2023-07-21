@@ -88,4 +88,4 @@ dash_conf = config_dict['dashboard']
 db_conf = config_dict["db"]
 
 sql_conf = config_dict['sql']
-
+sql_conf: typing.Mapping[str, typing.Any]

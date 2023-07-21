@@ -1,5 +1,6 @@
 import streamlit as st
 
+from config.load_config import store_configuration
 from .states import update_case, update_images, update_report, update_annotation
 
 
@@ -25,6 +26,11 @@ def change_case_submit():
         select_case(new_case_no)
     else:
         st.warning(f'There is no case with no {new_case_no}.')
+
+
+def store_conf_submit(**kwargs):
+    store_configuration(**kwargs)
+    st.success(f"Successfully stored the current configuration as {kwargs['config_id']}.")
 
 
 def select_case(case_no):
