@@ -33,7 +33,8 @@ since one of the required packages, psycopg2, has bugs regarding system-level li
    activate swag-tag
    ```
    3. Move to upper directory and clone the dicom-base repo
-   ```cd ..
+   ```
+      cd ..
       git clone https://github.com/Baessler-Lab/dicom-base.git
    ```
 4. Install the package using pip 
