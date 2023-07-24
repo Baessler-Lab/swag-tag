@@ -15,7 +15,7 @@ db:
 local_fs:
   host: localhost
   user: flaqua
-  rootdir: /home/group_data/shared_data/mimic
+  rootdir: /mnt/nfs_swag_nas/group_data/mimic
   datadir: files
   tablesdir: tables
   fname: instance_tags.csv
