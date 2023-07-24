@@ -69,7 +69,8 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
                 'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
                 'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
                 'side': int(st.session_state.dash_conf[f'default_annotation_side']),
-                'height': st.session_state.dash_conf[f'default_annotation_height'],
+                'left_height': st.session_state.dash_conf[f'default_annotation_height'],
+                'right_height': st.session_state.dash_conf[f'default_annotation_height'],
             })
             annotation[tag] = annotation_meta
     else:
@@ -91,11 +92,17 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
                 'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
                 'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
                 'side': int(st.session_state.dash_conf[f'default_annotation_side']),
-                'height': st.session_state.dash_conf[f'default_annotation_height'],
+                'left_height': st.session_state.dash_conf[f'default_annotation_height'],
+                'right_height': st.session_state.dash_conf[f'default_annotation_height'],
             }
             # pass
 
     annotation['tags'] = active_tags
+
+    # reset widget 'tags'
+    if f"tags_{st.session_state['cur_study_instance_uid']}" in st.session_state:
+        del st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]
+
     if inplace:
         st.session_state['current_annotations'] = annotations
         st.session_state['current_annotation'] = annotation

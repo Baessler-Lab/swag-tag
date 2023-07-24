@@ -7,15 +7,16 @@ from annotation.io import save_annotation
 
 def st_annotation_box():
     st.markdown('## Annotation ##')
+
     st.multiselect(
         label='Tags',
         options=st.session_state.dash_conf['annotation_tags'],
         default=st.session_state.current_annotation['tags'],
-        key='tags',
+        key=f"tags_{st.session_state['cur_study_instance_uid']}",  # id needed for clearing widget on case switch
     )
-    an_form = st.form('annotation_form')
+    an_form = st.form('annotation_form', clear_on_submit=True)
     for tag in st.session_state.dash_conf['annotation_tags']:
-        visible = tag in st.session_state['tags']
+        visible = tag in st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]
 
         if visible:
             with an_form:
@@ -54,14 +55,15 @@ def st_annotation_box():
                 )
 
             with an_form:
-                match side:
+                # st.write(f"side_{tag} %s" % st.session_state[f'annotation_side_{tag}'])
+                match int(st.session_state[f'annotation_side_{tag}']):
                     case 0:
                         pass
                     case 1:  # left
                         st.markdown("#### Left")
                         st.multiselect(
                             label='Vertical location',
-                            default=st.session_state.current_annotation[tag]['height'],
+                            default=st.session_state.current_annotation[tag]['left_height'],
                             options=list(st.session_state.dash_conf['annotation_height'].keys()),
                             format_func=lambda x: st.session_state.dash_conf['annotation_height'][x],
                             label_visibility=visibility,
@@ -71,7 +73,7 @@ def st_annotation_box():
                         st.markdown("#### Right")
                         st.multiselect(
                             label='Vertical location',
-                            default=st.session_state.current_annotation[tag]['height'],
+                            default=st.session_state.current_annotation[tag]['right_height'],
                             options=list(st.session_state.dash_conf['annotation_height'].keys()),
                             format_func=lambda x: st.session_state.dash_conf['annotation_height'][x],
                             label_visibility=visibility,
@@ -81,7 +83,7 @@ def st_annotation_box():
                         st.markdown("#### Right")
                         st.multiselect(
                             label='Vertical location',
-                            default=st.session_state.current_annotation[tag]['height'],
+                            default=st.session_state.current_annotation[tag]['right_height'],
                             options=list(st.session_state.dash_conf['annotation_height'].keys()),
                             format_func=lambda x: st.session_state.dash_conf['annotation_height'][x],
                             label_visibility=visibility,
@@ -90,8 +92,8 @@ def st_annotation_box():
                         st.markdown("#### Left")
                         st.multiselect(
                             label='Vertical location',
-                            default=st.session_state.current_annotation[tag]['height'],
-                            options=list(st.session_state.dash_conf['annotation_height']),
+                            default=st.session_state.current_annotation[tag]['left_height'],
+                            options=list(st.session_state.dash_conf['annotation_height'].keys()),
                             format_func=lambda x: st.session_state.dash_conf['annotation_height'][x],
                             label_visibility=visibility,
                             key=f'annotation_height_left_{tag}',
@@ -103,7 +105,8 @@ def st_annotation_box():
     with an_form:
         st.form_submit_button('save_annotation',
                               type='primary',
-                              on_click=store_annotation_callback)
+                              on_click=store_annotation_callback,
+                              )
 
 
 def store_annotation_callback():
