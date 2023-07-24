@@ -13,7 +13,9 @@ Current features are:
 - Adding tags to the current case
   - Several pathologies and findings with finer specifications are currently available
   - Additionally, severity for action can be added as a tag
+  - Side of an annotation and a multiple heights (corresponding to upper, middle, and lower field of the lung
 - Moving between dataset cases and specifying a case to jump directly to it
+- Previous annotations are loaded directly into the case.
 - loading and saving user configurations
 
 
@@ -32,7 +34,7 @@ since one of the required packages, psycopg2, has bugs regarding system-level li
    conda env create -f environment.yml --name swag-tag 
    activate swag-tag
    ```
-   3. Move to upper directory and clone the dicom-base repo
+3. Move to upper directory and clone the dicom-base repo
    ```
       cd ..
       git clone https://github.com/Baessler-Lab/dicom-base.git
@@ -46,3 +48,20 @@ since one of the required packages, psycopg2, has bugs regarding system-level li
     cd swag-tag
     pip install -r requirements.txt
     ```
+## Configuration
+The configuration is stored under `swagtag/config/config.yaml`. Change the settings (e.g. directories) to your needs.
+   
+## Run
+Make sure to export the `src`-directory: `swagtag` and the `root`-directory to your `PYTHONPATH` environment.
+
+You can run the streamlit application by running 
+```
+python -m streamlit run "/ABSOLUTE/PATH/TO/swag-tag/swagtag/main.py"
+--server.fileWatcherType none
+--server.port 8510
+--server.enableCORS false
+--server.enableXsrfProtection false
+--server.enableWebsocketCompression false
+--server.baseUrlPath "/swag-tag"
+```
+in your virtual environment/conda environment.
