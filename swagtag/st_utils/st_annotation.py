@@ -113,7 +113,7 @@ def store_annotation_callback():
     annotation_dict = {}
     for tag in st.session_state.dash_conf['annotation_tags']:
         annotation_meta = defaultdict(lambda: 0)
-        if tag in tag in st.session_state['tags']:
+        if tag in st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]:
             annotation_meta.update({
                 'probability': int(st.session_state[f'annotation_proba_{tag}']),
                 'severity': int(st.session_state[f'annotation_severity_{tag}']),
@@ -122,7 +122,7 @@ def store_annotation_callback():
             match annotation_meta['side']:
                 case 0:
                     annotation_meta['left_height'] = st.session_state.dash_conf['default_annotation_height']
-                    annotation_meta['right_height'] = st.session_state['default_annotation_height']
+                    annotation_meta['right_height'] = st.session_state.dash_conf['default_annotation_height']
                 case 1:  # left
                     annotation_meta['left_height'] = st.session_state[f'annotation_height_left_{tag}']
                     annotation_meta['right_height'] = st.session_state.dash_conf['default_annotation_height']
