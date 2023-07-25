@@ -101,12 +101,23 @@ def create_table(
                 )
                     for tag, type in table_conf['columns'].items()]
             )
+
+            prim_key = table_conf['prim_key']
             constraints = sql.SQL(', ').join(
-                [sql.SQL("PRIMARY KEY ({prim_key})").format(prim_key=sql.Identifier(table_conf["prim_key"])), ] +
-                [sql.SQL("FOREIGN KEY ({foreign_id}) REFERENCES {foreign_table}({foreign_id})").format(
-                    foreign_table=sql.Identifier(foreign_table),
-                    foreign_id=sql.Identifier(foreign_id)
-                ) for foreign_table, foreign_id in table_conf['foreign_mapping'].items()]
+                [
+                    sql.SQL("PRIMARY KEY ({prim_key})").format(
+                        prim_key=sql.Identifier(prim_key) if isinstance(prim_key, str)
+                        else sql.SQL(', ').join([sql.Identifier(fid) for fid in prim_key]),
+                    ),  # list for key
+                ] +
+                [
+                    sql.SQL("FOREIGN KEY ({foreign_id}) REFERENCES {foreign_table}({foreign_id})").format(
+                        foreign_table=sql.Identifier(foreign_table),
+                        foreign_id=sql.Identifier(foreign_id) if isinstance(foreign_id, str)
+                        else sql.SQL(', ').join([sql.Identifier(fid) for fid in foreign_id])  # list for key
+                    )
+                    for foreign_table, foreign_id in table_conf['foreign_mapping'].items()
+                ]
             )
 
             create_cmd = sql.SQL(

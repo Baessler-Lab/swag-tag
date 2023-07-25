@@ -46,9 +46,9 @@ def scrape_filetree_and_save_to_database():
             imagepaths have style PatientID/StudyInstanceUID/SeriesInstanceUID.jpeg
             """
 
-            # DEBUG:
-            if k >= 5:
-                break
+            # # DEBUG:
+            # if k >= 5:
+            #     break
 
             patient_id = report_fpath.parent.parts[-1].__str__()
             study_instance_uid = report_fpath.stem
@@ -87,6 +87,27 @@ def scrape_filetree_and_save_to_database():
 
             reports_uri_vals_to_insert.append(report_uri_mapping)
             reports_uri_vals_to_insert: typing.MutableSequence[typing.Mapping[str, ...]]
+            if k % 1000 == 0:
+                # bulk insert into DB
+                insert_into_db(
+                    dicom_dicts=reports_uri_vals_to_insert,
+                    conn=conn,
+                    table_conf=sql_conf['study_table'],
+                    upsert=True,
+                )
+                insert_into_db(
+                    dicom_dicts=reports_uri_vals_to_insert,
+                    conn=conn,
+                    table_conf=sql_conf['reports_table'],
+                    upsert=True,
+                )
+                insert_into_db(
+                    dicom_dicts=image_uri_vals_to_insert,
+                    conn=conn,
+                    table_conf=sql_conf['image_uris_table'],
+                    upsert=True,
+                )
+                conn.commit()
 
         # bulk insert into DB
         insert_into_db(

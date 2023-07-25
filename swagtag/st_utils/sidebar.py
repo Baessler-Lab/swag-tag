@@ -5,8 +5,8 @@ from functools import partial
 import streamlit as st
 
 from config.config import sql_conf
-from config.load_config import load_dash_conf_meta, lookup_label_from_config_meta, store_configuration
-from .case_selection import change_case_next, change_case_prev, change_case_submit
+from config.load_config import load_dash_conf_meta, lookup_label_from_config_meta
+from .case_selection import change_case_next, change_case_prev, change_case_submit, store_conf_submit
 from .st_image import update_fig_window, get_max_slices, callback_window_border_slider
 from .states import update_config
 
@@ -73,7 +73,7 @@ def sidebar(img_spots: typing.List[st.empty]):
 
                 st.form_submit_button(
                     label='Save current configuration',
-                    on_click=store_configuration,
+                    on_click=store_conf_submit,
                     kwargs=dict(
                         config_id=conf_id,
                         dashboard_configuration=cur_conf,

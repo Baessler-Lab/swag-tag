@@ -52,7 +52,7 @@ def load_dash_conf_meta(
         conn: connection = None,
 ) -> pd.DataFrame:
     if conn is None:
-        raise ValueError('You need to provice a Connection to retrieve a config from Postgres.')
+        raise ValueError('You need to provide a Connection to retrieve a config from Postgres.')
 
     configs_list = read_jsons_to_list_of_dicts(
         table_name=sql_conf['config_table']['table_name'],
@@ -92,3 +92,4 @@ def store_configuration(config_id: str, dashboard_configuration: typing.MutableM
         table_conf=sql_conf['config_table'],
         upsert=True,
     )
+
