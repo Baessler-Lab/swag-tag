@@ -66,10 +66,15 @@ dashboard:
     }
   annotation_severity:
     {
-      0: 'irrelevant',
-      1: 'relevant but not urgent',
-      2: 'relevant, urgent response (~1 day)',
-      3: 'relevant, immediate response',
+      0: 'mild',
+      1: 'moderate',
+      2: 'severe',
+    }
+  annotation_urgency:
+    {
+      0: 'not urgent',
+      1: 'urgent response (~1 day)',
+      2: 'immediate response',
     }
   annotation_side:
     {
@@ -87,6 +92,7 @@ dashboard:
   default_tags: [ ]
   default_annotation_probability: 0
   default_annotation_severity: 0
+  default_annotation_urgency: 0
   default_annotation_side: 0
   default_annotation_height: [ ]
 
