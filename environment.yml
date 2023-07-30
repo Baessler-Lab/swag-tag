@@ -3,14 +3,18 @@ channels:
   - conda-forge
 dependencies:
   - python=3.10
-  - simpleitk
+  - pip>=23.2.1
   - conda=23.5.0
-  - plotly[version='>=5.13.1']
-  - scipy
-  - pyyaml
-  - python-kaleido
-  - psycopg2-binary[version='>=2.9.3']
-  - pandas[version='>=1.5.0']
-  - pydicom[version='>=2.3.1']
-  - sqlalchemy[version='>=2.0.7']
-prefix: /home/flaqua/mambaforge/envs/swag-tag
+  - simpleitk>=2.2.0
+  - plotly>=5.13.1
+  - scipy>=1.11.1
+  - pyyaml>=6.0
+  - python-kaleido>=0.2.1
+  - psycopg2-binary>=2.9.3
+  - pandas>=1.5.0
+  - pydicom>=2.3.1
+  - sqlalchemy>=2.0.7
+  - streamlit>=1.19.0
+  - numpy>=1.23
+  - pip:
+    - git+https://github.com/Baessler-Lab/dicom-base
