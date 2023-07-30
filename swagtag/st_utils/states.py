@@ -68,6 +68,7 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
             annotation_meta.update({
                 'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
                 'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
+                'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
                 'side': int(st.session_state.dash_conf[f'default_annotation_side']),
                 'left_height': st.session_state.dash_conf[f'default_annotation_height'],
                 'right_height': st.session_state.dash_conf[f'default_annotation_height'],
@@ -91,6 +92,7 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
             annotation[tag] = {
                 'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
                 'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
+                'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
                 'side': int(st.session_state.dash_conf[f'default_annotation_side']),
                 'left_height': st.session_state.dash_conf[f'default_annotation_height'],
                 'right_height': st.session_state.dash_conf[f'default_annotation_height'],
