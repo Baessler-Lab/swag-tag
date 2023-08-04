@@ -29,10 +29,10 @@ since one of the required packages, psycopg2, has bugs regarding system-level li
    git clone https://github.com/Baessler-Lab/swag-tag.git
    cd swag-tag
    ```
-2. Create a new conda environment using the environment.yml provided in the repo (change "myenv" to a name of your choice) and activate it
+2. Create a new conda environment using the environment.yml provided in the repo and activate it
     ```
    conda env create -f environment.yml
-   activate swag-tag
+   conda activate swag-tag
    ```
 ## Configuration
 The configuration is stored under `swagtag/config/config.yaml`. Change the settings (e.g. directories) to your needs.
@@ -42,4 +42,3 @@ You can run the streamlit application by running
 ```
 bash start-app.sh
 ```
-in your conda environment.
