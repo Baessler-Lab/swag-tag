@@ -58,6 +58,13 @@ dashboard:
     - 'hiatal hernia'
     - 'fibrosis'
     - 'emphysema'
+  annotation_attributes:
+    - 'probability'
+    - 'severity'
+    - 'urgency'
+    - 'side'
+    - 'left_height'
+    - 'right_height'
   annotation_probability:
     {
       0: 'absent',
@@ -94,7 +101,8 @@ dashboard:
   default_annotation_severity: 0
   default_annotation_urgency: 0
   default_annotation_side: 0
-  default_annotation_height: [ ]
+  default_annotation_left_height: [ ]
+  default_annotation_right_height: [ ]
 
 
 sql:
@@ -185,6 +193,7 @@ sql:
           'AccessionNumber': 'character varying(256)',
           'annotation_json': 'jsonb',
           'creation_time': 'timestamp',
+          'author': 'character varying(256)',
         },
       prim_key: 'annotation_id',
       timestamp_col: 'creation_time',

@@ -65,14 +65,18 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
         for tag in st.session_state.dash_conf['annotation_tags']:
             annotation_meta = defaultdict(lambda: 0)
             # if tag in tag in st.session_state['tags']:
-            annotation_meta.update({
-                'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
-                'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
-                'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
-                'side': int(st.session_state.dash_conf[f'default_annotation_side']),
-                'left_height': st.session_state.dash_conf[f'default_annotation_height'],
-                'right_height': st.session_state.dash_conf[f'default_annotation_height'],
-            })
+            for attribute in st.session_state.dash_conf['annotation_attributes']:
+                def_val = st.session_state.dash_conf[f'default_annotation_{attribute}']
+                annotation_meta[attribute] = [int(val) for val in def_val] \
+                    if isinstance(def_val, list) else int(def_val)
+                # annotation_meta.update({
+                #     'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
+                #     'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
+                #     'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
+                #     'side': int(st.session_state.dash_conf[f'default_annotation_side']),
+                #     'left_height': st.session_state.dash_conf[f'default_annotation_left_height'],
+                #     'right_height': st.session_state.dash_conf[f'default_annotation_right_height'],
+                # })
             annotation[tag] = annotation_meta
     else:
         if annotation_id is not None:
@@ -83,21 +87,33 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
     # identify non-zero tags (backward-compatibility):
     active_tags = []
     for tag in annotation.keys():
-        try:
-            proba = annotation[tag]['probability']
-            if proba > 0:
-                active_tags.append(tag)
-        except KeyError:
-            # backward compatibility for empty annotation_tags
-            annotation[tag] = {
-                'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
-                'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
-                'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
-                'side': int(st.session_state.dash_conf[f'default_annotation_side']),
-                'left_height': st.session_state.dash_conf[f'default_annotation_height'],
-                'right_height': st.session_state.dash_conf[f'default_annotation_height'],
-            }
+        for attribute in st.session_state.dash_conf['annotation_attributes']:
+
+            try:
+                att = annotation[tag][attribute]
+                if attribute == 'probability':
+                    if att > 0:
+                        active_tags.append(tag)
+                # type conversion to new integer based jsons
+                non_def_val = annotation[tag][attribute]
+                annotation[tag][attribute] = [int(val) for val in non_def_val] \
+                    if isinstance(non_def_val, list) else int(non_def_val)
+            except KeyError:
+                # backward compatibility for empty annotation_tags
+                # annotation[tag] = {
+                #     'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
+                #     'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
+                #     'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
+                #     'side': int(st.session_state.dash_conf[f'default_annotation_side']),
+                #     'left_height': st.session_state.dash_conf[f'default_annotation_height'],
+                #     'right_height': st.session_state.dash_conf[f'default_annotation_height'],
+                # }
+                def_val = st.session_state.dash_conf[f'default_annotation_{attribute}']
+                annotation[tag][attribute] = [int(val) for val in def_val] \
+                    if isinstance(def_val, list) else int(def_val)
             # pass
+
+        # fill missing tag attributes
 
     annotation['tags'] = active_tags
 
@@ -173,7 +189,7 @@ def init_session_states():
         st.session_state['dash_conf'] = load_dash_conf(
             conn=st.session_state.db_conn,
             config_id='default',
-            default=False,
+            default=True,
         )
 
     # load cases

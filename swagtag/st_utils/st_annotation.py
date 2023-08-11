@@ -90,6 +90,8 @@ def st_annotation_box():
                         )
                     case 3:  # both
                         st.markdown("#### Right")
+                        print(list(st.session_state.dash_conf['annotation_height'].keys()))
+                        print(st.session_state.current_annotation[tag]['right_height'])
                         st.multiselect(
                             label='Vertical location',
                             default=st.session_state.current_annotation[tag]['right_height'],

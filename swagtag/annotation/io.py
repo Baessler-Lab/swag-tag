@@ -44,5 +44,6 @@ def load_annotations(study_instance_uid: str,
         ids_to_load=[study_instance_uid],
         conn=conn,
     )
+    print(annotations)
 
     return {annotation[sql_conf['result_table']['prim_key']]: annotation for annotation in annotations}
