@@ -33,12 +33,21 @@ def st_annotation_box():
                 )
 
                 st.radio(
-                    label='Severity & urgency',
+                    label='Severity',
                     index=st.session_state.current_annotation[tag]['severity'],
                     options=list(st.session_state.dash_conf['annotation_severity']),
                     format_func=lambda x: st.session_state.dash_conf['annotation_severity'][x],
                     label_visibility=visibility,
                     key=f'annotation_severity_{tag}',
+                    horizontal=True,
+                )
+                st.radio(
+                    label='Urgency',
+                    index=st.session_state.current_annotation[tag]['urgency'],
+                    options=list(st.session_state.dash_conf['annotation_urgency']),
+                    format_func=lambda x: st.session_state.dash_conf['annotation_urgency'][x],
+                    label_visibility=visibility,
+                    key=f'annotation_urgency_{tag}',
                     horizontal=True,
                 )
                 radio_side_placeholder = st.empty()
@@ -81,6 +90,8 @@ def st_annotation_box():
                         )
                     case 3:  # both
                         st.markdown("#### Right")
+                        print(list(st.session_state.dash_conf['annotation_height'].keys()))
+                        print(st.session_state.current_annotation[tag]['right_height'])
                         st.multiselect(
                             label='Vertical location',
                             default=st.session_state.current_annotation[tag]['right_height'],
@@ -117,6 +128,7 @@ def store_annotation_callback():
             annotation_meta.update({
                 'probability': int(st.session_state[f'annotation_proba_{tag}']),
                 'severity': int(st.session_state[f'annotation_severity_{tag}']),
+                'urgency': int(st.session_state[f'annotation_urgency_{tag}']),
                 'side': int(st.session_state[f'annotation_side_{tag}']),
             })
             match annotation_meta['side']:
@@ -138,6 +150,7 @@ def store_annotation_callback():
             annotation_meta.update({
                 'probability': int(st.session_state.dash_conf['default_annotation_probability']),
                 'severity': int(st.session_state.dash_conf['default_annotation_severity']),
+                'urgency': int(st.session_state.dash_conf['default_annotation_urgency']),
                 'side': int(st.session_state.dash_conf['default_annotation_side']),
                 'left_height': st.session_state.dash_conf['default_annotation_height'],
                 'right_height': st.session_state.dash_conf['default_annotation_height'],
