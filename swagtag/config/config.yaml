@@ -198,6 +198,7 @@ sql:
       prim_key: 'annotation_id',
       timestamp_col: 'creation_time',
       json_col: 'annotation_json',
+      user_col: 'author',
       foreign_mapping:
         {
           'reports': 'AccessionNumber',
@@ -215,6 +216,23 @@ sql:
         },
       json_col: 'config_json',
       prim_key: 'config_id',
+      timestamp_col: 'creation_time',
+      foreign_mapping:
+        {
+        },
+
+    }
+  user_table:
+    {
+      table_name: 'users',
+      columns:
+        {
+          'user_id': 'SERIAL',
+          'user_name': 'character varying(256) UNIQUE',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'user_id',
+      user_col: 'user_name',
       timestamp_col: 'creation_time',
       foreign_mapping:
         {
