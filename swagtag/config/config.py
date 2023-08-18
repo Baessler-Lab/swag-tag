@@ -75,6 +75,7 @@ class PathConfiguration:
 
 # load yaml
 config_py_fpath = Path(__file__).with_name("config.yaml")
+config_py_fpath = Path(__file__).with_name("config.yaml")
 with config_py_fpath.open("r") as f:
     config_dict = yaml.safe_load(f)
 

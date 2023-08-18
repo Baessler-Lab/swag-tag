@@ -1,0 +1,118 @@
+structures:
+  Prior Examinations: [
+    '<Free text>',
+  ]
+  Limited Assessability: [
+    'no ',
+    'incomplete depiction ',
+    'reduced inspiratory depth ',
+    'Patient rotated insufficiently to the right ',
+    'Patient rotated insufficiently to the left ',
+    'Cranially angulated incorrectly ',
+    'Caudally angulated incorrectly',
+  ]
+  Foreign Material: [
+    '<Free text>',
+  ]
+  Diaphragm: [
+    'regular position ',
+    'elevated due to shallow inspiration ',
+    'right diaphragmatic elevation ',
+    'left diaphragmatic elevation ',
+    'right diaphragmatic descent ',
+    'left diaphragmatic descent ',
+    '(no) Pneumoperitoneum / free air',
+  ]
+  Pneumothorax: [
+    'none ',
+    'Apical pneumothorax ',
+    'Mantle pneumothorax ',
+    'Basal pneumothorax ',
+    'Tension pneumothorax',
+  ]
+  Pleural Effusion: [
+    'none ',
+    'minor pleural effusion ',
+    'moderate pleural effusion ',
+    'marked pleural effusion ',
+    'adhesive effusion components',
+  ]
+  Ventilation Disorders: [
+    'none ',
+    'subsegmental atelectasis ',
+    'Plate atelectasis',
+    'Compression atelectasis ',
+    'Round atelectasis ',
+    'Obstructive atelectasis',
+  ]
+  Inflammatory Infiltrates: [
+    'none ',
+    'possible',
+    'urgent suspicion/ highly likely',
+  ]
+  Pulmonary Edema: [
+    'none ',
+    'interstitial pulmonary edema ',
+    'alveolar pulmonary edema ',
+    'Reexpansion edema',
+  ]
+  Heart: [
+    'regular ',
+    'enlarged due to projection (a.p. projection, misrotation) and/or shallow inspiration ',
+    'Cardiomegaly',
+  ]
+  Mediastinum: [
+    'displaced due to misrotation',
+    'enlarged ',
+    'normal width ',
+    'symmetrically widened ',
+    'widened to the right ',
+    'widened to the left',
+  ]
+  Bony Structures: [
+    'regular ',
+    '<Free text>',
+  ]
+  Soft Tissue Envelope: [
+    'regular ',
+    'Emphysema ',
+    'asymmetric swelling ',
+    'asymmetric mammary shadow ',
+    'Severe obesity',
+  ]
+
+attributes:
+  side:
+    - 'right'
+    - 'left'
+    - 'both sides'
+  widening:
+    - 'to left'
+    - 'to right'
+    - 'symmetric'
+  height:
+    - 'Upper field'
+    - 'Middle field'
+    - 'Lower field'
+  mediastinal_loc:
+    - 'midline '
+    - 'displaced to the right (not rotationally related) '
+    - 'displaced to the left (not rotationally related)'
+  opt_pneumomediastinum:
+    - 'no pneumomediastinum'
+    - 'pneumomediastinum'
+
+default_attr_options: [ ]
+
+attr_options:
+  Pneumothorax:
+    - side
+  Ventilation disorders:
+    - side
+    - height
+  Inflammatory Infiltrates:
+    - side
+    - height
+  Mediastinum:
+    - mediastinal_loc
+    - opt_pneumomediastinum

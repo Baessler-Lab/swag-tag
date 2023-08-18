@@ -1,0 +1,232 @@
+orthanc:
+  host: localhost
+  port: 8042
+  protocol: http
+  source_modality: PHOENIX
+  max_workers: 16
+
+db:
+  host: localhost
+  port: 5002
+  user: postgres
+  password: SmilelikeyouMeanIt
+  dbname: llm-tag
+
+local_fs:
+  host: localhost
+  user: flaqua
+  rootdir: /mnt/nfs_swag_nas/group_data/mimic
+  datadir: files
+  tablesdir: tables
+  fname: instance_tags.csv
+
+dashboard:
+  config_id: 'default_llm'
+  page_title: 'LLM-Tag'
+  title: 'LLM-Tag: A Streamlit-based webapp for annotation of reports guided by large language models.'
+  default_case_no: 0
+  report_columns:
+    - 'examination'
+    - 'indication'
+    - 'history'
+    - 'comparison'
+    - 'technique'
+    - 'findings'
+    - 'impression'
+  annotation_tags:
+    - 'pneumonia/infiltrate'
+    - 'pneumothorax'
+    - 'fracture'
+    - 'congestion/edema'
+    - 'pleural efusion'
+    - 'cardiomegaly'
+    - 'atelectasis'
+    - 'mass'
+    - 'abscess'
+    - 'free air'
+    - 'misplaced/defect foreign body'
+    - 'aspiration'
+    - 'hiatal hernia'
+    - 'fibrosis'
+    - 'emphysema'
+  annotation_attributes:
+    - 'probability'
+    - 'severity'
+    - 'urgency'
+    - 'side'
+    - 'left_height'
+    - 'right_height'
+  annotation_probability:
+    {
+      0: 'absent',
+      1: 'possible',
+      2: 'highly likely/certain',
+    }
+  annotation_severity:
+    {
+      0: 'mild',
+      1: 'moderate',
+      2: 'severe',
+    }
+  annotation_urgency:
+    {
+      0: 'not urgent',
+      1: 'urgent response (~1 day)',
+      2: 'immediate response',
+    }
+  annotation_side:
+    {
+      0: 'irrelevant',
+      1: 'left',
+      2: 'right',
+      3: 'both',
+    }
+  annotation_height:
+    {
+      1: 'lower',
+      2: 'middle',
+      3: 'upper',
+    }
+  default_tags: [ ]
+  default_annotation_probability: 0
+  default_annotation_severity: 0
+  default_annotation_urgency: 0
+  default_annotation_side: 0
+  default_annotation_left_height: [ ]
+  default_annotation_right_height: [ ]
+
+
+sql:
+  study_table:
+    {
+      table_name: 'studies',
+      columns:
+        {
+          'PatientID': 'character varying(256)',
+          'StudyInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'StudyInstanceUID',
+      foreign_mapping:
+        {
+        },
+    }
+  reports_table:
+    {
+      table_name: 'reports',
+      columns:
+        {
+          'PatientID': 'character varying(256)',
+          'StudyInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'report_uri': 'character varying(256)',
+          'creation_time': 'timestamp',
+          'examination': 'text',
+          'indication': 'text',
+          'history': 'text',
+          'comparison': 'text',
+          'technique': 'text',
+          'findings': 'text',
+          'impression': 'text',
+        },
+      prim_key: 'AccessionNumber',
+      foreign_mapping:
+        {
+          'studies': 'StudyInstanceUID',
+        },
+    }
+
+  image_uris_table:
+    {
+      table_name: 'image_uris',
+      columns:
+        {
+          'PatientID': 'character varying(256)',
+          'StudyInstanceUID': 'character varying(256)',
+          'SeriesInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'image_uri': 'character varying(256)',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'SeriesInstanceUID',
+      foreign_mapping:
+        {
+          'reports': 'AccessionNumber',
+          'studies': 'StudyInstanceUID',
+        },
+    }
+  #  reports_uris_table:
+  #    {
+  #      table_name: 'reports_uris',
+  #      columns:
+  #        {
+  #          'PatientID': 'character varying(256)',
+  #          'StudyInstanceUID': 'character varying(256)',
+  #          'SeriesInstanceUID': 'character varying(256)',
+  #          'AccessionNumber': 'character varying(256)',
+  #          'report_uri': 'character varying(256)',
+  #          'creation_time': 'timestamp',
+  #        },
+  #      prim_key: 'AccessionNumber',
+  #      foreign_mapping:
+  #        {
+  #          'reports': 'AccessionNumber'
+  #        },
+  #    }
+  result_table:
+    {
+      table_name: 'annotations',
+      columns:
+        {
+          'annotation_id': 'SERIAL',
+          'StudyInstanceUID': 'character varying(256)',
+          'AccessionNumber': 'character varying(256)',
+          'annotation_json': 'jsonb',
+          'creation_time': 'timestamp',
+          'author': 'character varying(256)',
+        },
+      prim_key: 'annotation_id',
+      timestamp_col: 'creation_time',
+      json_col: 'annotation_json',
+      user_col: 'author',
+      foreign_mapping:
+        {
+          'reports': 'AccessionNumber',
+          'studies': 'StudyInstanceUID'
+        },
+    }
+  config_table:
+    {
+      table_name: 'dash_conf',
+      columns:
+        {
+          'config_id': 'character varying(256)',
+          'config_json': 'jsonb',
+          'creation_time': 'timestamp',
+        },
+      json_col: 'config_json',
+      prim_key: 'config_id',
+      timestamp_col: 'creation_time',
+      foreign_mapping:
+        {
+        },
+
+    }
+  user_table:
+    {
+      table_name: 'users',
+      columns:
+        {
+          'user_id': 'SERIAL',
+          'user_name': 'character varying(256) UNIQUE',
+          'creation_time': 'timestamp',
+        },
+      prim_key: 'user_id',
+      user_col: 'user_name',
+      timestamp_col: 'creation_time',
+      foreign_mapping:
+        {
+        },
+
+    }
