@@ -3,116 +3,136 @@ structures:
     '<Free text>',
   ]
   Limited Assessability: [
-    'no ',
-    'incomplete depiction ',
-    'reduced inspiratory depth ',
-    'Patient rotated insufficiently to the right ',
-    'Patient rotated insufficiently to the left ',
-    'Cranially angulated incorrectly ',
+    'no',
+    'incomplete depiction',
+    'reduced inspiratory depth',
+    'Patient rotated insufficiently to the right',
+    'Patient rotated insufficiently to the left',
+    'Cranially angulated incorrectly',
     'Caudally angulated incorrectly',
   ]
   Foreign Material: [
+    'none'
+    'venous catheter',
+    'pleural/ thoracic drainage',
+    'tracheal cannula',
+    'endotracheal tube (ETT)',
+    'nasogastric tube',
+    'mediastinal/pericardial drain',
+    'valve replacement',
+    'arterial catheter',
     '<Free text>',
   ]
   Diaphragm: [
-    'regular position ',
-    'elevated due to shallow inspiration ',
-    'right diaphragmatic elevation ',
-    'left diaphragmatic elevation ',
-    'right diaphragmatic descent ',
-    'left diaphragmatic descent ',
-    '(no) Pneumoperitoneum / free air',
+    'regular position',
+    'elevated due to shallow inspiration',
+    'diaphragmatic elevation',
+    'diaphragmatic depression',
+    'diaphragmatic eventration'
+  ]
+  Abdominal Cavity: [
+    'regular',
+    'pneumoperitoneum / abdominal free air',
+    'dilated bowel',
+    '<Free text>'
   ]
   Pneumothorax: [
-    'none ',
-    'Apical pneumothorax ',
-    'Mantle pneumothorax ',
-    'Basal pneumothorax ',
+    'none',
+    'Loculated pneumothorax',
+    'Interlobular/fissural pneumothorax',
     'Tension pneumothorax',
   ]
   Pleural Effusion: [
-    'none ',
-    'minor pleural effusion ',
-    'moderate pleural effusion ',
-    'marked pleural effusion ',
+    'none',
+    'pleural effusion',
     'adhesive effusion components',
   ]
   Ventilation Disorders: [
-    'none ',
-    'subsegmental atelectasis ',
+    'none',
+    'subsegmental atelectasis',
     'Plate atelectasis',
-    'Compression atelectasis ',
-    'Round atelectasis ',
+    'Compression atelectasis',
+    'Round atelectasis',
     'Obstructive atelectasis',
   ]
   Inflammatory Infiltrates: [
-    'none ',
+    'none',
     'possible',
     'urgent suspicion/ highly likely',
   ]
   Pulmonary Edema: [
-    'none ',
-    'interstitial pulmonary edema ',
-    'alveolar pulmonary edema ',
+    'none',
+    'interstitial pulmonary edema',
+    'alveolar pulmonary edema',
     'Reexpansion edema',
   ]
   Heart: [
-    'regular ',
-    'enlarged due to projection (a.p. projection, misrotation) and/or shallow inspiration ',
+    'regular',
+    'enlarged due to projection (a.p. projection, misrotation) and/or shallow inspiration',
     'Cardiomegaly',
+    'Pneumopericardium',
   ]
   Mediastinum: [
     'displaced due to misrotation',
-    'enlarged ',
-    'normal width ',
-    'symmetrically widened ',
-    'widened to the right ',
-    'widened to the left',
+    'widened'
   ]
   Bony Structures: [
-    'regular ',
+    'regular',
     '<Free text>',
   ]
   Soft Tissue Envelope: [
-    'regular ',
-    'Emphysema ',
-    'asymmetric swelling ',
-    'asymmetric mammary shadow ',
+    'regular',
+    'Emphysema',
+    'asymmetric swelling',
+    'asymmetric mammary shadow',
     'Severe obesity',
   ]
 
 attributes:
-  side:
+  opt_side:
     - 'right'
     - 'left'
     - 'both sides'
-  widening:
+  opt_widening:
     - 'to left'
     - 'to right'
     - 'symmetric'
-  height:
+  multi_height:
     - 'Upper field'
     - 'Middle field'
     - 'Lower field'
   mediastinal_loc:
     - 'midline '
-    - 'displaced to the right (not rotationally related) '
+    - 'displaced to the right (not rotationally related)'
     - 'displaced to the left (not rotationally related)'
   opt_pneumomediastinum:
     - 'no pneumomediastinum'
     - 'pneumomediastinum'
+  opt_severity:
+    - 'mild'
+    - 'moderate'
+    - 'extensive / marked'
+  opt_foreign_body:
+    - 'not mentioned'
+    - 'regular placement'
+    - 'misplaced'
 
 default_attr_options: [ ]
 
 attr_options:
   Pneumothorax:
     - side
+    - multi_height
   Ventilation disorders:
     - side
-    - height
+    - multi_height
   Inflammatory Infiltrates:
     - side
-    - height
+    - multi_height
+    - opt_severity
   Mediastinum:
     - mediastinal_loc
+    - opt_widening
     - opt_pneumomediastinum
+  Foreign Material:
+    - opt_foreign_body
