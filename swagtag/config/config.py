@@ -1,6 +1,6 @@
 import typing
 from pathlib import Path
-
+import streamlit as st
 import yaml
 
 
@@ -72,24 +72,37 @@ class PathConfiguration:
         # self.out_dir.mkdir(exist_ok=True,
         #                    parents=True)
 
+match st.session_state['page']:
+    case 'llm':
+        CONFIG_YAML_NAME = "llm-tag-config.yaml"
+    case 'swag-tag':
+        CONFIG_YAML_NAME = "config.yaml"
+    case _:
+        raise ValueError("'page' needs to be defined in st.session_state")
 
 # load yaml
 CONFIG_PY_FPATH = Path(__file__)
-CONFIG_YAML_NAME = "config.yaml"
-
 CONFIG_YAML_FPATH = CONFIG_PY_FPATH.with_name(CONFIG_YAML_NAME)
+CONFIG_DB_FPATH = CONFIG_PY_FPATH.with_name('db_config.yaml')
+with CONFIG_DB_FPATH.open("r") as f:
+    CONFIG_DICT = yaml.safe_load(f)
 
 with CONFIG_YAML_FPATH.open("r") as f:
-    CONFIG_DICT = yaml.safe_load(f)
+    DASHBOARD_CONF = yaml.safe_load(f)
+
+sql_conf = DASHBOARD_CONF['sql']
+
+DASH_CONF = DASHBOARD_CONF['dashboard']
+
+
+
 
 # init configss
 path_conf = PathConfiguration(**CONFIG_DICT["local_fs"])
 
 orth_conf = OrthancConfig(**CONFIG_DICT["orthanc"])
 
-DASH_CONF = CONFIG_DICT['dashboard']
-
 db_conf = CONFIG_DICT["db"]
 
-sql_conf = CONFIG_DICT['sql']
+
 sql_conf: typing.Mapping[str, typing.Any]

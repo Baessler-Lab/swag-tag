@@ -13,6 +13,11 @@ from sql.init_db import create_or_check_db_and_tables
 from user.manage import read_user_dicts
 
 
+def update_all():
+    update_images(inplace=True)
+    update_annotation(inplace=True)
+    update_report(inplace=True)
+
 def update_case(case_no: int):
     st.session_state['case_no'] = case_no
     st.session_state['cur_study_instance_uid'] = st.session_state['map_study_instance_uid_accession_number'].iloc[

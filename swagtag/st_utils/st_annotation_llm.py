@@ -6,7 +6,7 @@ from itertools import chain
 import streamlit as st
 
 from annotation.io import save_annotation, get_last_user_annotation, lookup_label_from_annotation_meta
-from st_utils.states_swag_tag import update_annotation
+from st_utils.states_llm import update_annotation
 
 
 def st_annotation_select():

@@ -1,24 +1,3 @@
-orthanc:
-  host: localhost
-  port: 8042
-  protocol: http
-  source_modality: PHOENIX
-  max_workers: 16
-
-db:
-  host: localhost
-  port: 5002
-  user: postgres
-  password: SmilelikeyouMeanIt
-  dbname: swag
-
-local_fs:
-  host: localhost
-  user: flaqua
-  rootdir: /mnt/nfs_swag_nas/group_data/mimic
-  datadir: files
-  tablesdir: tables
-  fname: instance_tags.csv
 
 dashboard:
   config_id: 'default'

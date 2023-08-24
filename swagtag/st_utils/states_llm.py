@@ -1,24 +1,18 @@
 import json
 import typing
-from collections import defaultdict
 
 import pandas as pd
 import streamlit as st
 import yaml
 
 import config.config as CFG
-from annotation.io import load_annotations, get_last_user_annotation, get_default_annotation_and_meta, \
-    llm_default_annotation_meta
-
+from annotation.io import load_annotations, get_last_user_annotation, llm_default_annotation_meta
 from config.config import db_conf, sql_conf
-
 from config.load_config import load_dash_conf
-from data_load.image_buffer import load_images_for_study
 from data_load.report_load import load_report_for_study
 from sql.db_utils import connect_to_db, read_table_to_df
 from sql.init_db import create_or_check_db_and_tables
 from user.manage import read_user_dicts
-
 
 # monkey-patch dashboard config
 CONFIG_YAML_NAME = "llm-tag-config.yaml"
@@ -31,6 +25,11 @@ with CONFIG_YAML_FPATH.open("r") as f:
 CFG.DASH_CONF = LLM_CONFIG_DICT['dashboard']
 
 
+def update_all():
+    update_annotation(inplace=True)
+    update_report(inplace=True)
+
+
 def update_case(case_no: int):
     st.session_state['case_no'] = case_no
     st.session_state['cur_study_instance_uid'] = st.session_state['map_study_instance_uid_accession_number'].iloc[
@@ -39,17 +38,6 @@ def update_case(case_no: int):
     st.session_state['cur_accession_number'] = st.session_state['map_study_instance_uid_accession_number'].iloc[
         st.session_state['case_no']
     ].loc['AccessionNumber']
-
-
-def update_images(inplace: bool = True):
-    images = load_images_for_study(
-        StudyInstanceUID=st.session_state['cur_study_instance_uid'],
-        df=st.session_state['image_uris_dataframe']
-    )
-    if inplace:
-        st.session_state['images'] = images
-    else:
-        return images
 
 
 def update_report(inplace: bool = True):
@@ -142,7 +130,6 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
     # reset annotation_widgets
     reset_annotation_widgets(node=st.session_state.template)
 
-
     if inplace:
         st.session_state['current_annotations'] = annotations
         st.session_state['current_annotations_meta'] = annotations_meta
@@ -189,7 +176,6 @@ def update_user(user_name: str = None, user_id: int | str = None, inplace: bool 
 
 
 def update_template(template_id: str = None, inplace: bool = False):
-
     if template_id is None:
         template_file = CONFIG_YAML_FPATH.with_name('templates') / CFG.DASH_CONF['default_template']
 
@@ -219,9 +205,9 @@ def update_config():
         default=False,
     )
     update_case(st.session_state['dash_conf']['default_case_no'])
-    update_images(inplace=True)
     update_report(inplace=True)
     update_annotation(inplace=True)
+    update_template(inplace=True)
 
 
 @st.cache_data
