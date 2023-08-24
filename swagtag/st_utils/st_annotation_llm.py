@@ -41,7 +41,10 @@ def recurse_template(
         node: typing.Mapping,
         annotation_node: typing.Mapping,
         an_form: st.form = None,
-        headline_level: int = 2
+        headline_level: int = 2,
+        column_step: int = 2,
+        columns_step_size: float = 0.02,
+
 ):
     # node =             "name": "limited assessability",
     #             "id": 2,
@@ -63,8 +66,11 @@ def recurse_template(
 
     # indent results
     with an_form:
-        placeholder = st.container()
-
+        first_width = column_step * columns_step_size + 1e-4
+        second_width = 1 - first_width
+        c1, c2 = st.columns((first_width, second_width))
+        with c2:
+            placeholder = st.container()
 
     if 'children' in node and 'children' in annotation_node:  # not a bottom node
 
@@ -74,6 +80,8 @@ def recurse_template(
                 sub_node,
                 sub_ann_node,
                 headline_level=headline_level + 1,
+                column_step=column_step + 1,
+                columns_step_size = columns_step_size,
                 an_form=an_form
             ) for sub_node, sub_ann_node in zip(node['children'], annotation_node['children'])
         ]
@@ -268,7 +276,7 @@ def recursive_store_annotation(
         activate_child: bool = False
 ) -> typing.Dict[str, typing.Any]:
     ret_node = {'name': node['name'], 'id': node['id']}
-    if "single-select-from-children":
+    if "single-select-from-children" in node:
         ret_node["single-select-from-children"] = node["single-select-from-children"]
     if 'activatable' in node:
         if node['activatable']:
@@ -285,7 +293,7 @@ def recursive_store_annotation(
             raise RuntimeError('There are no children to this node but %s is in session_state.',
                                f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}") from ae
         for child in node['children']:
-            activate_subchild = child['id'] in st.session_state[
+            activate_subchild = str(child['id']) in st.session_state[
                 f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}"]
             recursive_store_annotation(child, activate_child=activate_subchild)
 

@@ -29,9 +29,6 @@ dashboard:
   report_columns:
     - 'examination'
     - 'indication'
-    - 'history'
-    - 'comparison'
-    - 'technique'
     - 'findings'
     - 'impression'
   annotation_tags:

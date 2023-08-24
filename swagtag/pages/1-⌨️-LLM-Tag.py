@@ -18,9 +18,11 @@ def app():
     init_session_states(page='llm')
 
     st.title(st.session_state.dash_conf['title'])
-
-    st_report_box()
-    st_annotation_box()
+    c1, c2 = st.columns((0.5, 0.7))
+    with c1:
+        st_report_box()
+    with c2:
+        st_annotation_box()
 
     # sidebar
     sb = sidebar()
