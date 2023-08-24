@@ -74,19 +74,22 @@ class PathConfiguration:
 
 
 # load yaml
-config_py_fpath = Path(__file__).with_name("config.yaml")
-config_py_fpath = Path(__file__).with_name("config.yaml")
-with config_py_fpath.open("r") as f:
-    config_dict = yaml.safe_load(f)
+CONFIG_PY_FPATH = Path(__file__)
+CONFIG_YAML_NAME = "config.yaml"
+
+CONFIG_YAML_FPATH = CONFIG_PY_FPATH.with_name(CONFIG_YAML_NAME)
+
+with CONFIG_YAML_FPATH.open("r") as f:
+    CONFIG_DICT = yaml.safe_load(f)
 
 # init configss
-path_conf = PathConfiguration(**config_dict["local_fs"])
+path_conf = PathConfiguration(**CONFIG_DICT["local_fs"])
 
-orth_conf = OrthancConfig(**config_dict["orthanc"])
+orth_conf = OrthancConfig(**CONFIG_DICT["orthanc"])
 
-dash_conf = config_dict['dashboard']
+DASH_CONF = CONFIG_DICT['dashboard']
 
-db_conf = config_dict["db"]
+db_conf = CONFIG_DICT["db"]
 
-sql_conf = config_dict['sql']
+sql_conf = CONFIG_DICT['sql']
 sql_conf: typing.Mapping[str, typing.Any]

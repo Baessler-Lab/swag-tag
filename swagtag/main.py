@@ -5,29 +5,27 @@ from swagtag.st_utils.sidebar import sidebar
 from swagtag.st_utils.st_annotation import st_annotation_box
 from swagtag.st_utils.st_image import st_image_box
 from swagtag.st_utils.st_report import st_report_box
-from swagtag.st_utils.states import init_session_states
+from swagtag.st_utils.states_swag_tag import init_session_states
 
 
 def app():
     st.set_page_config(
-        page_title=load_dash_conf(default=True)['page_title'],
+        page_title='Home',
         layout="wide",
     )
     init_session_states()
 
-    st.title(st.session_state.dash_conf['title'])
+    st.title('This are Baessler-Lab\'s annotation tools for radiology reports.')
 
-    c1, c2 = st.columns((1, 2))
-    with c2:
-        image_spot = st.container()
-        # display images
-        fig_spots = st_image_box(image_spot)
-    with c1:
-        st_report_box()
-        st_annotation_box()
-
-    # sidebar
-    sb = sidebar(fig_spots)
+    st.markdown(
+        """
+        ## Please select the scenario from the sidebar.
+        Feel free to contact us using github.com/baessler-lab/swag-tag
+        or via woznicki_p@ukw.de, amar.hekalo@uni-wuerzburg.de, orlaqua_f@ukw.de
+        
+        
+        """
+    )
 
 
 if __name__ == '__main__':

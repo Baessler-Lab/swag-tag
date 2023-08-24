@@ -70,7 +70,6 @@ def get_last_user_annotation(annotations_meta: typing.Mapping[str | int, typing.
         annotation, annotation_meta = get_default_annotation_and_meta(dash_conf=dash_conf)
     return annotation, annotation_meta
 
-
 def get_default_annotation_and_meta(
         dash_conf: typing.Mapping[str, typing.Any]):
     # st.session_state.dash_conf['annotation_attributes']
@@ -88,32 +87,12 @@ def get_default_annotation_and_meta(
     return annotation, annotation_meta
 
 
-
-
-def llm_default_annotation_meta(node: typing.Dict[str, typing.Any]):
-    res_node = {'id': node['id'], 'name': node['name']}
-
-
-    if "single-select-from-children" in node:
-        res_node["single-select-from-children"] = node["single-select-from-children"]
-    if 'activatable' in node:
-        res_node['activated'] = False
-    if "single-selectable" in node:
-        res_node["single-selectable"] = True
-    if 'children' in node:
-        children = node['children']
-        res_node['children'] = [
-            llm_default_annotation_meta(child)
-            for child in children
-        ]
-    return res_node
-
-
 def lookup_label_from_annotation_meta(
         annotation_id: str | None,
         annotations_meta: typing.Mapping[str, typing.Any],
 
 ) -> str:
+
     if annotation_id is None:
         return "empty"
     cur_meta = annotations_meta[annotation_id]

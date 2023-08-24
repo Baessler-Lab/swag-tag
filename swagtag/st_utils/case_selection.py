@@ -1,8 +1,14 @@
 import streamlit as st
 
 from config.load_config import store_configuration
-from .states import update_case, update_images, update_report, update_annotation
-
+from config.config import DASH_CONF
+match st.session_state['page']:
+    case 'llm':
+        from .states_llm import update_case, update_images, update_report, update_annotation
+    case 'swag-tag':
+        from .states_swag_tag import update_case, update_images, update_report, update_annotation
+    case _:
+        raise ValueError("'page' needs to be defined in st.session_state")
 
 def change_case_prev():
     cur_case_no = st.session_state['case_no']

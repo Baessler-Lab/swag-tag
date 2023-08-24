@@ -5,7 +5,7 @@ from swagtag.st_utils.sidebar import sidebar
 from swagtag.st_utils.st_annotation import st_annotation_box
 from swagtag.st_utils.st_image import st_image_box
 from swagtag.st_utils.st_report import st_report_box
-from swagtag.st_utils.states import init_session_states
+from swagtag.st_utils.states_swag_tag import init_session_states
 
 
 def app():
@@ -27,7 +27,7 @@ def app():
         st_annotation_box()
 
     # sidebar
-    sb = sidebar(fig_spots)
+    sb = sidebar(img_spots=fig_spots)
 
 
 if __name__ == '__main__':

@@ -24,7 +24,8 @@ dashboard:
   config_id: 'default_llm'
   page_title: 'LLM-Tag'
   title: 'LLM-Tag: A Streamlit-based webapp for annotation of reports guided by large language models.'
-  default_case_no: 0
+  default_template: 'template_english_structured.json'
+  default_case_no: 1000
   report_columns:
     - 'examination'
     - 'indication'

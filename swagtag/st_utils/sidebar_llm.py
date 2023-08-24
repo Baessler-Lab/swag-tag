@@ -9,7 +9,7 @@ from config.load_config import load_dash_conf_meta, lookup_label_from_config_met
 from user.manage import add_new_user
 from .case_selection import change_case_next, change_case_prev, change_case_submit, store_conf_submit
 from .st_image import update_fig_window, get_max_slices, callback_window_border_slider
-from .states_swag_tag import update_config, update_users, update_user
+from .states_llm import update_config, update_users, update_user
 
 
 def change_user():

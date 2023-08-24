@@ -204,7 +204,10 @@ def lookup_accession_number(df: pd.DataFrame, study_instance_uid: str) -> str:
     return acc_no.squeeze()
 
 
-def init_session_states():
+def init_session_states(page: str):
+    if not 'page' in st.session_state:
+        st.session_state['page'] = page
+
     # init database
     if 'table_inited' not in st.session_state:
         st.session_state['table_inited'] = True
