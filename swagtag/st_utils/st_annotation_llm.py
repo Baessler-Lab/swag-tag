@@ -46,11 +46,6 @@ def recurse_template(
         columns_step_size: float = 0.02,
 
 ):
-    # node =             "name": "limited assessability",
-    #             "id": 2,
-    #             "single-select-from-children": true,
-    #             "children": [{}]
-    # sub nodes
     # generate form if missing
     if an_form is None:
         an_form = st.form('annotation_form', clear_on_submit=True)
@@ -87,19 +82,20 @@ def recurse_template(
         ]
         children = [child for child in children if child is not None]
 
+
+                # st.write({key: val for key, val in node.items() if key != 'children'})
         with placeholder:
-            if not activatable:
-                st.markdown(f"{'#' * headline_level} {node['name']}")
-                st.write({key: val for key, val in node.items() if key != 'children'})
+            # if not activatable:
+            st.markdown(f"{'#' * headline_level} {node['name']}")
 
-
-        if len(children) > 1:
+        if len(children) >= 1:
             # import json
             # pretty = json.dumps(st.session_state.current_annotation, indent=4)
             # print(pretty)
             # TODO: a future streamlit release will support None as default index currently we need to hack this...
             # an option would be to add a default tag and make it invisible using CSS or 'Select!'.
             activated_children = [child for child in children if child['activated']]
+
 
 
             if single_select_from_children:
@@ -114,11 +110,12 @@ def recurse_template(
                 default_index = children_ids.index(activated_child_id) if activated_child_id is not None else 0
 
                 with placeholder:
-                    st.selectbox(
+                    st.radio(
                         label=node['name'],
                         options=children_ids,
                         format_func=lambda child_id: children[children_ids.index(child_id) - 1]['name']
                         if child_id != 'default' else def_node['name'],
+                        horizontal=True,
                         index=default_index,
                         label_visibility='collapsed',
                         key=f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}"
@@ -293,6 +290,7 @@ def recursive_store_annotation(
             raise RuntimeError('There are no children to this node but %s is in session_state.',
                                f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}") from ae
         for child in node['children']:
+            print(node['children'])
             activate_subchild = str(child['id']) in st.session_state[
                 f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}"]
             recursive_store_annotation(child, activate_child=activate_subchild)
