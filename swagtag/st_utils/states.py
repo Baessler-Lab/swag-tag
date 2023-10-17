@@ -3,13 +3,14 @@ from collections import defaultdict
 import pandas as pd
 import streamlit as st
 
-from annotation.io import load_annotations
+from annotation.io import load_annotations, get_last_user_annotation, get_default_annotation_and_meta
 from config.config import db_conf, sql_conf
 from config.load_config import load_dash_conf
 from data_load.image_buffer import load_images_for_study
 from data_load.report_load import load_report_for_study
 from sql.db_utils import connect_to_db, read_table_to_df
 from sql.init_db import create_or_check_db_and_tables
+from user.manage import read_user_dicts
 
 
 def update_case(case_no: int):
@@ -58,31 +59,33 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
         study_instance_uid=st.session_state['cur_study_instance_uid'],
         conn=st.session_state['db_conn']
     )
+    annotations_meta = {
+        aid: {
+            key: val for key, val in ann.items() if key != sql_conf['result_table']['json_col']
+        }
+        for aid, ann in annotations.items()
+    }
+
     if len(annotations) == 0:
         # no stored annotation
         # set defaults
-        annotation = {}
-        for tag in st.session_state.dash_conf['annotation_tags']:
-            annotation_meta = defaultdict(lambda: 0)
-            # if tag in tag in st.session_state['tags']:
-            for attribute in st.session_state.dash_conf['annotation_attributes']:
-                def_val = st.session_state.dash_conf[f'default_annotation_{attribute}']
-                annotation_meta[attribute] = [int(val) for val in def_val] \
-                    if isinstance(def_val, list) else int(def_val)
-                # annotation_meta.update({
-                #     'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
-                #     'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
-                #     'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
-                #     'side': int(st.session_state.dash_conf[f'default_annotation_side']),
-                #     'left_height': st.session_state.dash_conf[f'default_annotation_left_height'],
-                #     'right_height': st.session_state.dash_conf[f'default_annotation_right_height'],
-                # })
-            annotation[tag] = annotation_meta
+        annotation, annotation_meta = get_default_annotation_and_meta(st.session_state.dash_conf)
     else:
         if annotation_id is not None:
             annotation = annotations[annotation_id][sql_conf['result_table']['json_col']]
+            annotation_meta = annotations_meta[annotation_id]
         else:
-            annotation = next(reversed(annotations.values()))[sql_conf['result_table']['json_col']]
+            # annotation = next(reversed(annotations.values()))[sql_conf['result_table']['json_col']]
+            annotation, annotation_meta = get_last_user_annotation(annotations_meta=annotations_meta,
+                                                                   annotations=annotations,
+                                                                   user=st.session_state.current_user,
+                                                                   dash_conf=st.session_state.dash_conf)
+            # user_annotations_meta = {
+            #     key: val for key, val in
+            #     annotations_meta.items() if val[sql_conf['result_table']['user_col']] == st.session_state.current_user
+            # }
+            # last_annotation_id = next(reversed(user_annotations_meta.keys()))
+            # annotation = annotations[annotation_id][sql_conf['result_table']['json_col']]
 
     # identify non-zero tags (backward-compatibility):
     active_tags = []
@@ -123,9 +126,39 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
 
     if inplace:
         st.session_state['current_annotations'] = annotations
+        st.session_state['current_annotations_meta'] = annotations_meta
         st.session_state['current_annotation'] = annotation
+        st.session_state['current_annotation_meta'] = annotation_meta
     else:
         return annotation
+
+
+def update_users(inplace: bool = True):
+    if inplace:
+        st.session_state['users_dict'] = read_user_dicts(conn=st.session_state.db_conn)
+        st.session_state['users'] = [user_dict[sql_conf['user_table']['user_col']] for user_dict in
+                                     st.session_state['users_dict'].values()]
+    else:
+        return read_user_dicts(conn=st.session_state.db_conf), [user_dict[sql_conf['user_table']['user_col']] for
+                                                                user_dict in
+                                                                st.session_state['users_dict'].values()]
+
+
+def update_user(user_name: str = None, user_id: int | str = None, inplace: bool = True):
+    if user_name is None and user_id is None:
+        cur_user = 'default'
+    else:
+        if user_name is not None:
+            print(user_name, st.session_state['users'])
+            assert user_name in st.session_state['users']
+            cur_user = user_name
+        else:
+            cur_user = st.session_state['users_dict'][user_id][sql_conf['user_table']['user_col']]
+
+    if inplace:
+        st.session_state['current_user'] = cur_user
+    else:
+        return cur_user
 
 
 def update_config():
@@ -192,6 +225,14 @@ def init_session_states():
             default=True,
         )
 
+    if 'users_dict' not in st.session_state or 'users' not in st.session_state:
+        # st.session_state['users'] = read_user_dicts(conn=st.session_state.db_conf)
+        update_users(inplace=True)
+
+    # init user and user_dicts
+    if 'current_user' not in st.session_state:
+        update_user(user_name=None, user_id=None, inplace=True)
+
     # load cases
     if 'map_study_instance_uid_accession_number' not in st.session_state:
         st.session_state['map_study_instance_uid_accession_number'] = \
@@ -222,4 +263,5 @@ def init_session_states():
 
     # load annotations for the case into case iterator
     if 'current_annotation' not in st.session_state:
-        st.session_state['current_annotation'] = update_annotation(inplace=False)
+        # st.session_state['current_annotation'] =
+        update_annotation(inplace=True)

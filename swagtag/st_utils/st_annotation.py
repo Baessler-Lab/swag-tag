@@ -1,12 +1,46 @@
 from collections import defaultdict
+from functools import partial
 
 import streamlit as st
 
-from annotation.io import save_annotation
+from annotation.io import save_annotation, get_last_user_annotation, lookup_label_from_annotation_meta
+from st_utils.states import update_annotation
 
 
+def st_annotation_select():
+    cur_anns_meta = st.session_state.current_annotations_meta
+
+    if len(cur_anns_meta) > 0:
+        # get last annotation for current user
+        last_annotation, last_annotation_meta = get_last_user_annotation(
+            annotations_meta=st.session_state.current_annotations_meta,
+            annotations=st.session_state.current_annotations,
+            user=st.session_state['current_user'],
+            dash_conf=st.session_state.dash_conf,
+        )
+        annotation_options = list(st.session_state.current_annotations.keys()) + [None, ]
+        if len(last_annotation_meta) > 0:
+            last_annotation_index = list(st.session_state.current_annotations.keys()).\
+                index(last_annotation_meta['annotation_id'])
+        else:
+            last_annotation_index = annotation_options.__len__() - 1
+
+        ann_id = st.selectbox(
+            label='Stored annotations',
+            options=list(st.session_state.current_annotations.keys()) + [None, ],
+            format_func=partial(lookup_label_from_annotation_meta, annotations_meta=cur_anns_meta),
+            index=last_annotation_index,
+            key=f'selected_annotation_id',
+        )
+        update_annotation(annotation_id=ann_id)
+
+
+# noinspection DuplicatedCode
 def st_annotation_box():
     st.markdown('## Annotation ##')
+
+    # select annotations
+    st_annotation_select()
 
     st.multiselect(
         label='Tags',
@@ -120,6 +154,10 @@ def st_annotation_box():
                               )
 
 
+def load_annotation_callback():
+    ...
+
+
 def store_annotation_callback():
     annotation_dict = {}
     for tag in st.session_state.dash_conf['annotation_tags']:
@@ -162,6 +200,7 @@ def store_annotation_callback():
         study_instance_uid=st.session_state['cur_study_instance_uid'],
         accession_number=st.session_state['cur_accession_number'],
         annotation=annotation_dict,
+        author=st.session_state.current_user,
         conn=st.session_state['db_conn']
     )
     st.success('Successfully stored your annotation.')

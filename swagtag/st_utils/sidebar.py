@@ -6,14 +6,57 @@ import streamlit as st
 
 from config.config import sql_conf
 from config.load_config import load_dash_conf_meta, lookup_label_from_config_meta
+from user.manage import add_new_user
 from .case_selection import change_case_next, change_case_prev, change_case_submit, store_conf_submit
 from .st_image import update_fig_window, get_max_slices, callback_window_border_slider
-from .states import update_config
+from .states import update_config, update_users, update_user
+
+
+def change_user():
+    # sanity check if user in users
+    selected_user = st.session_state.selected_user
+    update_user(user_name=selected_user[sql_conf['user_table']['user_col']])
+
+
+
+def add_user():
+    new_user = st.session_state['new_user']
+    new_user: typing.Dict[str, typing.Any]
+    add_new_user(user_name=new_user[sq], conn=st.session_state.db_conn)
+    update_users(inplace=True)
+    update_user(user_name=new_user)
+    st.success(f"Successfully added a the new user '{new_user}'")
+
+
+def st_user_selection():
+    st.markdown(f"### Current user <{st.session_state.current_user}>")
+
+    st.selectbox(
+        label='Select new user',
+        options=list(st.session_state.users_dict.values()),
+        format_func=lambda x: x['user_name'],
+        index=0,
+        key='selected_user',
+        on_change=change_user,
+    )
+    with st.expander(label='Add new user', expanded=False):
+        with st.form('Add new user'):
+            st.text_input(
+                label='Username',
+                key='new_user',
+            )
+            st.form_submit_button(
+                label='Add user',
+                on_click=add_user,
+            )
 
 
 def sidebar(img_spots: typing.List[st.empty]):
     # Image Tool
     with st.sidebar:
+        # user selection
+        st_user_selection()
+
         st.slider(
             label="Min/Max Values for Window?",
             value=st.session_state.dash_conf['window_default_range'],
