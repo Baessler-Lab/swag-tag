@@ -1,3 +1,4 @@
+import json
 import typing
 from collections import defaultdict
 from functools import partial
@@ -37,9 +38,17 @@ def st_annotation_select():
         update_annotation(annotation_id=ann_id)
 
 
+# def recurse_template_and_annotation_tree(
+#         node: typing.Mapping,
+#         annotation_node: typing.Mapping,
+# ):
+#     if
+
+
 def recurse_template(
         node: typing.Mapping,
         annotation_node: typing.Mapping,
+        upstream_activated: bool = True,
         an_form: st.form = None,
         headline_level: int = 2,
         column_step: int = 2,
@@ -59,89 +68,184 @@ def recurse_template(
     except KeyError:
         activatable = False
 
-    # indent results
-    with an_form:
-        first_width = column_step * columns_step_size + 1e-4
-        second_width = 1 - first_width
-        c1, c2 = st.columns((first_width, second_width))
-        with c2:
-            placeholder = st.container()
+    # if activatable:
+    #     downstream_activated = annotation_node['activated']
+    # else:
+    #     # pass upstream activation if node is not activatable
+    #     downstream_activated = upstream_activated
+
+
+
+    # return sub tree
+    ret_node = {
+        'id': node['id'],
+        'name': node['name'],
+        'activatable': activatable,
+    }
+    ret_ann_node = {
+        'id': node['id'],
+        'name': node['name'],
+    }
 
     if 'children' in node and 'children' in annotation_node:  # not a bottom node
 
+        # activatable children
+        children = [child for child in node['children'] if child.get('activatable', False)]
+        ann_children = [child[1] for child in zip(node['children'], annotation_node['children']) if
+                        child[0].get('activatable', False)]
 
-        children = [
-            recurse_template(
-                sub_node,
-                sub_ann_node,
-                headline_level=headline_level + 1,
-                column_step=column_step + 1,
-                columns_step_size = columns_step_size,
-                an_form=an_form
-            ) for sub_node, sub_ann_node in zip(node['children'], annotation_node['children'])
-        ]
-        children = [child for child in children if child is not None]
+        non_activatable_children = [child[0] for child in zip(node['children'], annotation_node['children']) if
+                                    not child[0].get('activatable', False)]
+        non_activatable_ann_children = [child[1] for child in zip(node['children'], annotation_node['children']) if
+                                        not child[0].get('activatable', False)]
+        # print(f'all childs activatable: {bool_children_activatable}')
+        # st.write({key: val for key, val in node.items() if key != 'children'})
+        # if upstream_activated:
+        # bool_children_activatable = [child[0].get('activatable', False) for child in returned_children]
+        if f"node_{node['id']}_enabled" not in st.session_state:
+            st.session_state[f"node_{node['id']}_enabled"] = upstream_activated
 
+        if f"node_{node['id']}_enabled" not in st.session_state:
+            st.session_state[f"node_{node['id']}_enabled"] = upstream_activated
+        # indent results
+        # with an_form:
+        first_width = column_step * columns_step_size + 1e-4
+        second_width = 1 - first_width
+        c1, c2 = st.columns((first_width, second_width))
+        if st.session_state[f"node_{node['id']}_enabled"]:
+            with c2:
+                if st.session_state[f"node_{node['id']}_enabled"]:
+                    st.markdown(f"{'#' * headline_level} {node['name']}")
+                placeholder = st.empty()
 
-                # st.write({key: val for key, val in node.items() if key != 'children'})
-        with placeholder:
-            # if not activatable:
-            st.markdown(f"{'#' * headline_level} {node['name']}")
-
-        if len(children) >= 1:
+            # st.write(bool_children_activatable)
+        # assert children > 0 and ann_children > 0
+        # st.write(children)
+        # st.write(non_activatable_children)
+        if len(children) > 0:
             # import json
             # pretty = json.dumps(st.session_state.current_annotation, indent=4)
             # print(pretty)
             # TODO: a future streamlit release will support None as default index currently we need to hack this...
             # an option would be to add a default tag and make it invisible using CSS or 'Select!'.
-            activated_children = [child for child in children if child['activated']]
+            import json
+            # print(json.dumps(ann_children, indent=4))
+            activated_children = [
+                ann_child for child, ann_child in zip(children, ann_children)
+                # may be rendundand
+                if ann_child.get('activated', False) and child[0].get('activatable', False)
+            ]
+            if st.session_state[f"node_{node['id']}_enabled"]:
+                if single_select_from_children:
+                    assert len(activated_children) <= 1
+                    # get_activated_child_index
+                    try:
+                        activated_child_id = activated_children[0]['id']
+                    except IndexError:
+                        activated_child_id = None
+                    def_node = {'id': 'default', 'name': 'Select!', }
+                    children_ids = [def_node['id'], ] + [child['id'] for child in children]
+                    default_index = children_ids.index(activated_child_id) if activated_child_id is not None else 0
 
+                    with placeholder:
+                        activated_child_id = st.radio(
+                            label=node['name'],
+                            options=children_ids,
+                            format_func=lambda child_id: children[children_ids.index(child_id) - 1]['name']
+                            if child_id != 'default' else def_node['name'],
+                            horizontal=True,
+                            index=default_index,
+                            label_visibility='collapsed',
+                            # on_change=update_downstream_nodes(),
+                            # kwargs=dict(ann_children=ann_children),
+                            # disabled=not st.session_state[f"node_{node['id']}_enabled"],
+                            key=f"single_select_{node['id']}_{st.session_state['cur_study_instance_uid']}"
+                        )
+                        activated_children_ids = [
+                            st.session_state[
+                                f"single_select_{node['id']}_{st.session_state['cur_study_instance_uid']}"
+                            ]
+                        ]
 
+                        # # activate children
+                        # for child, ann_child in zip(children, ann_children):
+                        #     assert child['activatable']
+                        #
+                        #     if ann_child['id'] == activated_child_id and st.session_state[f"node_{node['id']}_enabled"]:
+                        #         ann_child['activated'] = True
+                        #         st.session_state[f"node_{ann_child['id']}_activated"] = True
+                        #     else:
+                        #         ann_child['activated'] = False
+                        #         st.session_state[f"node_{ann_child['id']}_activated"] = False
 
-            if single_select_from_children:
-                assert len(activated_children) <= 1
-                # get_activated_child_index
-                try:
-                    activated_child_id = activated_children[0]['id']
-                except IndexError:
-                    activated_child_id = None
-                def_node = {'id': 'default', 'name': 'Select!', }
-                children_ids = [def_node['id'], ] + [child['id'] for child in children]
-                default_index = children_ids.index(activated_child_id) if activated_child_id is not None else 0
+                else:
+                    with placeholder:
+                        children_ids = [child['id'] for child in children]
+                        activated_child_nodes = st.multiselect(
+                            label=node['name'],
+                            options=children,
+                            default=activated_children,
+                            format_func=lambda child: child['name'],
+                            key=f"multiselect_{node['id']}_{st.session_state['cur_study_instance_uid']}",
+                            label_visibility='collapsed',
+                            # disabled=st.session_state[f"node_{node['id']}_enabled"],
+                            # on_change=st.experimental_rerun(),
+                            # id needed for clearing widget on case switch
+                        )
 
-                with placeholder:
-                    st.radio(
-                        label=node['name'],
-                        options=children_ids,
-                        format_func=lambda child_id: children[children_ids.index(child_id) - 1]['name']
-                        if child_id != 'default' else def_node['name'],
-                        horizontal=True,
-                        index=default_index,
-                        label_visibility='collapsed',
-                        key=f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}"
-                    )
-
+                    activated_children_ids = [
+                        child['id']
+                        for child in
+                        st.session_state[f"multiselect_{node['id']}_{st.session_state['cur_study_instance_uid']}"]
+                    ]
             else:
-                with placeholder:
-                    activated_children_ids = [child['id'] for child in activated_children]
-                    children_ids = [child['id'] for child in children]
-                    st.multiselect(
-                        label=node['name'],
-                        options=children,
-                        default=activated_children,
-                        format_func=lambda child: child['name'],
-                        key=f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}",
-                        label_visibility='collapsed',
-                        # id needed for clearing widget on case switch
-                    )
+                activated_children_ids = []
 
+        # with placeholder:
+        #     st.write(ann_children)
+        returned_children = [
+            recurse_template(
+                sub_node,
+                sub_ann_node,
+                upstream_activated=sub_ann_node.get('activated', upstream_activated),
+                headline_level=headline_level + 1,
+                column_step=column_step + 1,
+                columns_step_size=columns_step_size,
+                an_form=an_form
+            ) for sub_node, sub_ann_node in zip(
+                chain(children, non_activatable_children),
+                chain(ann_children, non_activatable_ann_children)
+            )
+        ]
+        returned_node_children = [child[0] for child in returned_children]
+        returned_annotated_children = [child[1] for child in returned_children]
+
+        assert 'children' in annotation_node
+        ret_node['children'] = returned_node_children + non_activatable_children
+        ret_ann_node['children'] = returned_annotated_children + non_activatable_ann_children
 
     if activatable:
-        return {'id': node['id'], 'name': node['name'], 'activated': annotation_node['activated']}
-    else:
-        return None
+        # assert f"node_{node['id']}_activated" in st.session_state
+        ret_ann_node['activated'] = st.session_state[f"node_{node['id']}_activated"]
+
+    # # experimental:
+    # annotation_node = ret_ann_node
+    # node = ret_node
+
+    return ret_node, ret_ann_node
 
 
+# def update_downstream_nodes(upstream_node_key: str, upstream_node_enabled, ann_children: typing.Dict[str, typing.Any]):
+#     activated_children_ids = st.session_state
+#     # activate children
+#     for ann_child in ann_children:
+#         # assert child['activatable']
+#         if ann_child['id'] in activated_children_ids and st.session_state[f"node_{node['id']}_enabled"]:
+#             ann_child['activated'] = True
+#             st.session_state[f"node_{ann_child['id']}_activated"] = True
+#         else:
+#             ann_child['activated'] = False
+#             st.session_state[f"node_{ann_child['id']}_activated"] = False
 
 # noinspection DuplicatedCode
 def st_annotation_box():
@@ -157,7 +261,13 @@ def st_annotation_box():
     #     key=f"tags_{st.session_state['cur_study_instance_uid']}",  # id needed for clearing widget on case switch
     # )
     an_form = st.form('annotation_form', clear_on_submit=True)
-    recurse_template(st.session_state['template'], st.session_state.current_annotation, an_form=an_form, headline_level=2)
+    ret_node, ret_ann = recurse_template(
+        st.session_state['template'],
+        st.session_state.current_annotation,
+        upstream_activated=True,
+        an_form=an_form, headline_level=2)
+    # st.write(st.session_state)
+    st.json(json.dumps(ret_ann, indent=4))
     #
     # for tag in st.session_state.dash_conf['annotation_tags']:
     #     visible = tag in st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]

@@ -161,7 +161,7 @@ sql:
   #    }
   result_table:
     {
-      table_name: 'annotations',
+      table_name: 'annotations_llm',
       columns:
         {
           'annotation_id': 'SERIAL',
