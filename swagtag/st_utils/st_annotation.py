@@ -1,10 +1,130 @@
+import json
+import typing
 from collections import defaultdict
 from functools import partial
+from pathlib import Path
 
 import streamlit as st
 
 from annotation.io import save_annotation, get_last_user_annotation, lookup_label_from_annotation_meta
 from st_utils.states_swag_tag import update_annotation
+
+
+def handle_single_selection(node, report, unique_key, disabled):
+    option_ids = [child["id"] for child in node["children"]]
+    print(report)
+    selected_ids = [id_ for id_ in option_ids if report.get(str(id_), {}).get('activated', False)]
+    assert len(selected_ids) <= 1, "Maximally one child can be selected"
+    if not selected_ids:
+        selected_id = option_ids[0]
+    else:
+        selected_id = selected_ids[0]
+    default_index = option_ids.index(selected_id)
+    option_names = [child["name"] for child in node["children"]]
+    selected_name = st.radio(
+        node['name'],
+        option_names,
+        index=default_index,
+        key=f"{unique_key}_radio_{st.session_state.case_no}",
+        disabled=disabled)
+
+    return selected_name
+
+
+def handle_yes_no(node, report, unique_key, disabled):
+    activated_by_report = report.get(str(node["id"]), {}).get('activated', False)
+    activated = st.checkbox(
+        node['name'],
+        value=activated_by_report,
+        key=f"{unique_key}_checkbox_{st.session_state.case_no}",
+        disabled=disabled
+    )
+
+    return activated
+
+
+def render_report(template_node, report=None, level=-1, state=None, disabled=False):
+    node_id = str(template_node['id'])
+    node = template_node.copy()
+
+    if report is None:
+        report = {}
+
+    if state is None:
+        state = {}
+
+    if node.get('single-selectable', False):
+        if state.get(node_id, {}).get("activated", False):
+            activated = True
+        else:
+            activated = False
+    else:
+        cols = st.columns([1] * level + [4])
+
+        with cols[-1]:
+            if "single-select-from-children" in node and node["single-select-from-children"]:
+                selected_name = handle_single_selection(node, report, node_id, disabled=disabled)
+                single_select_activated = False
+                if not disabled:
+                    for child in node['children']:
+                        child_id = str(child['id'])
+                        if child['name'] == selected_name:
+                            state[child_id] = {'name': child["name"], 'activated': True}
+                            single_select_activated = True
+                        else:
+                            state[child_id] = {'name': child["name"], 'activated': False}
+
+
+            elif 'activatable' in node and node['activatable']:
+                activated = handle_yes_no(node, report, node_id, disabled=disabled)
+                if not disabled:
+                    state[node_id] = {'name': node["name"], 'activated': activated}
+
+            else:
+                st.markdown(node['name'])
+
+    children = node.get('children', [])
+
+    if not node.get("activatable"):
+        child_disabled = disabled or False
+    else:
+        try:
+            child_disabled = disabled or not activated or not single_select_activated
+        except UnboundLocalError:
+            child_disabled = disabled or False
+    for child in children:
+        render_report(child, report, level=level + 1, state=state, disabled=child_disabled)
+
+    return state
+
+@st.cache_resource(ttl=10000)
+def load_templates(
+        template_dir,
+) -> typing.Tuple[typing.List[dict], typing.List[str]]:
+    template_fpaths = [f for f in Path(template_dir).glob("*.json")]
+    template_options = [f.stem for f in template_fpaths]
+    templates = []
+    # try:
+    #     template_options.remove("default_template"),
+    # template_options.insert(0, "default_template")
+    for fpath in template_fpaths:
+        with fpath.open("r") as f:
+            templates.append(json.load(f))
+
+    return templates, template_options
+
+    # if 'template_loaded' not in st.session_state:
+    #     st.session_state.template_loaded = False
+    #
+    # if not st.session_state.template_loaded:
+    #     template_name = st.selectbox("Template", options=template_options, key=widget_key)
+    #     if st.button("Load template", use_container_width=True, key=f"{widget_key}_button"):
+    #         st.session_state.template_loaded = True
+    #
+    #         return template
+    # else:
+    #     st.write("Template already loaded.")
+    #     return None
 
 
 def st_annotation_select():
@@ -20,7 +140,7 @@ def st_annotation_select():
         )
         annotation_options = list(st.session_state.current_annotations.keys()) + [None, ]
         if len(last_annotation_meta) > 0:
-            last_annotation_index = list(st.session_state.current_annotations.keys()).\
+            last_annotation_index = list(st.session_state.current_annotations.keys()). \
                 index(last_annotation_meta['annotation_id'])
         else:
             last_annotation_index = annotation_options.__len__() - 1
@@ -42,116 +162,16 @@ def st_annotation_box():
     # select annotations
     st_annotation_select()
 
-    st.multiselect(
-        label='Tags',
-        options=st.session_state.dash_conf['annotation_tags'],
-        default=st.session_state.current_annotation['tags'],
-        key=f"tags_{st.session_state['cur_study_instance_uid']}",  # id needed for clearing widget on case switch
+    current_report = render_report(
+        template_node=st.session_state["template"],
+        report=None
     )
-    an_form = st.form('annotation_form', clear_on_submit=True)
-    for tag in st.session_state.dash_conf['annotation_tags']:
-        visible = tag in st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]
-
-        if visible:
-            with an_form:
-                visibility = 'visible'
-                st.markdown(f'### {tag}')
-                st.radio(
-                    label='Probability',
-                    index=st.session_state.current_annotation[tag]['probability'],
-                    options=list(st.session_state.dash_conf['annotation_probability']),
-                    format_func=lambda x: st.session_state.dash_conf['annotation_probability'][x],
-                    label_visibility=visibility,
-                    key=f'annotation_proba_{tag}',
-                    horizontal=True,
-                )
-
-                st.radio(
-                    label='Severity',
-                    index=st.session_state.current_annotation[tag]['severity'],
-                    options=list(st.session_state.dash_conf['annotation_severity']),
-                    format_func=lambda x: st.session_state.dash_conf['annotation_severity'][x],
-                    label_visibility=visibility,
-                    key=f'annotation_severity_{tag}',
-                    horizontal=True,
-                )
-                st.radio(
-                    label='Urgency',
-                    index=st.session_state.current_annotation[tag]['urgency'],
-                    options=list(st.session_state.dash_conf['annotation_urgency']),
-                    format_func=lambda x: st.session_state.dash_conf['annotation_urgency'][x],
-                    label_visibility=visibility,
-                    key=f'annotation_urgency_{tag}',
-                    horizontal=True,
-                )
-                radio_side_placeholder = st.empty()
-
-            with radio_side_placeholder:
-                side = st.radio(
-                    label='Annotation side',
-                    index=st.session_state.current_annotation[tag]['side'],
-                    options=list(st.session_state.dash_conf['annotation_side']),
-                    format_func=lambda x: st.session_state.dash_conf['annotation_side'][x],
-                    label_visibility=visibility,
-                    key=f'annotation_side_{tag}',
-                    horizontal=True,
-                )
-
-            with an_form:
-                # st.write(f"side_{tag} %s" % st.session_state[f'annotation_side_{tag}'])
-                match int(st.session_state[f'annotation_side_{tag}']):
-                    case 0:
-                        pass
-                    case 1:  # left
-                        st.markdown("#### Left")
-                        st.multiselect(
-                            label='Vertical location',
-                            default=st.session_state.current_annotation[tag]['left_height'],
-                            options=list(st.session_state.dash_conf['annotation_height'].keys()),
-                            format_func=lambda x: st.session_state.dash_conf['annotation_height'][x],
-                            label_visibility=visibility,
-                            key=f'annotation_height_left_{tag}',
-                        )
-                    case 2:  # Right
-                        st.markdown("#### Right")
-                        st.multiselect(
-                            label='Vertical location',
-                            default=st.session_state.current_annotation[tag]['right_height'],
-                            options=list(st.session_state.dash_conf['annotation_height'].keys()),
-                            format_func=lambda x: st.session_state.dash_conf['annotation_height'][x],
-                            label_visibility=visibility,
-                            key=f'annotation_height_right_{tag}',
-                        )
-                    case 3:  # both
-                        st.markdown("#### Right")
-                        print(list(st.session_state.dash_conf['annotation_height'].keys()))
-                        print(st.session_state.current_annotation[tag]['right_height'])
-                        st.multiselect(
-                            label='Vertical location',
-                            default=st.session_state.current_annotation[tag]['right_height'],
-                            options=list(st.session_state.dash_conf['annotation_height'].keys()),
-                            format_func=lambda x: st.session_state.dash_conf['annotation_height'][x],
-                            label_visibility=visibility,
-                            key=f'annotation_height_right_{tag}',
-                        )
-                        st.markdown("#### Left")
-                        st.multiselect(
-                            label='Vertical location',
-                            default=st.session_state.current_annotation[tag]['left_height'],
-                            options=list(st.session_state.dash_conf['annotation_height'].keys()),
-                            format_func=lambda x: st.session_state.dash_conf['annotation_height'][x],
-                            label_visibility=visibility,
-                            key=f'annotation_height_left_{tag}',
-                        )
-                    case _:
-                        pass
-        else:
-            pass
-    with an_form:
-        st.form_submit_button('save_annotation',
-                              type='primary',
-                              on_click=store_annotation_callback,
-                              )
+    st.session_state['current_report'] = current_report
+    # with an_form:
+    #     st.form_submit_button('save_annotation',
+    #                           type='primary',
+    #                           on_click=store_annotation_callback,
+    #                           )
 
 
 def load_annotation_callback():

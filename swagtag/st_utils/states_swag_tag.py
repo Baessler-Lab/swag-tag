@@ -3,6 +3,8 @@ from collections import defaultdict
 import pandas as pd
 import streamlit as st
 
+import st_utils.st_annotation
+import swagtag.config.config
 from annotation.io import load_annotations, get_last_user_annotation, get_default_annotation_and_meta
 from config.config import db_conf, sql_conf
 from config.load_config import load_dash_conf
@@ -51,6 +53,13 @@ def update_report(inplace: bool = True):
         st.session_state['report'] = report
     else:
         return report
+
+
+def update_template():
+    choice = st.session_state.get("template_selectbox", )
+    idx = st.session_state["template_options"].index(choice)
+    st.session_state["current_template"] = choice
+    st.session_state["template"] = st.session_state["templates"][idx]
 
 
 def update_annotation(inplace: bool = True, annotation_id: str = None) -> None | dict:
@@ -107,15 +116,7 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
                 annotation[tag][attribute] = [int(val) for val in non_def_val] \
                     if isinstance(non_def_val, list) else int(non_def_val)
             except KeyError:
-                # backward compatibility for empty annotation_tags
-                # annotation[tag] = {
-                #     'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
-                #     'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
-                #     'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
-                #     'side': int(st.session_state.dash_conf[f'default_annotation_side']),
-                #     'left_height': st.session_state.dash_conf[f'default_annotation_height'],
-                #     'right_height': st.session_state.dash_conf[f'default_annotation_height'],
-                # }
+
                 def_val = st.session_state.dash_conf[f'default_annotation_{attribute}']
                 annotation[tag][attribute] = [int(val) for val in def_val] \
                     if isinstance(def_val, list) else int(def_val)
@@ -265,11 +266,25 @@ def init_session_states(page: str):
     if 'window_borders' not in st.session_state:
         st.session_state['window_borders'] = st.session_state.dash_conf['window_default_range']
 
+    if "frac_img" not in st.session_state:
+        st.session_state['frac_img'] = st.session_state.dash_conf['default_frac_img']
+
     # load reports into case iterator
     if 'report' not in st.session_state:
         st.session_state['report'] = update_report(inplace=False)
+
+    if 'templates' not in st.session_state:
+        st.session_state["templates"], st.session_state["template_options"] = st_utils.\
+            st_annotation.load_templates(swagtag.config.config.TEMPLATE_DIR)
+        print([type(item) for item in st.session_state["templates"]])
+        assert swagtag.config.config.DEFAULT_TEMPLATE_NAME in st.session_state["template_options"]
+        st.session_state["template"] = st.session_state["templates"][
+            st.session_state["template_options"].index(swagtag.config.config.DEFAULT_TEMPLATE_NAME)]
+        st.session_state["current_template"] = swagtag.config.config.DEFAULT_TEMPLATE_NAME
+
 
     # load annotations for the case into case iterator
     if 'current_annotation' not in st.session_state:
         # st.session_state['current_annotation'] =
         update_annotation(inplace=True)
+

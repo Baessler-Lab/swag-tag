@@ -12,6 +12,8 @@ local_fs:
   datadir: files
   tablesdir: tables
   fname: instance_tags.csv
+  templates: templates
+
 
 orthanc:
   host: localhost

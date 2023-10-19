@@ -17,8 +17,6 @@ def app():
         ## Please select the scenario from the sidebar.
         Feel free to contact us using github.com/baessler-lab/swag-tag
         or via woznicki_p@ukw.de, amar.hekalo@uni-wuerzburg.de, orlaqua_f@ukw.de
-        
-        
         """
     )
 

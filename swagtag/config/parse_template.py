@@ -170,7 +170,7 @@ def parse_child(
                 parent_id=f"{parent_id}_{str(child_id)}",
                 child_id=sub_child_id,
                 activatable_child=activatable_child,
-       return children
+       # return children
 
     elif isinstance(child, Mapping):
 

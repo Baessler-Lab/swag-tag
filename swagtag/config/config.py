@@ -1,3 +1,4 @@
+import json
 import typing
 from pathlib import Path
 import streamlit as st
@@ -29,6 +30,7 @@ class PathConfiguration:
                  fname: typing.Union[str, Path],
                  datadir: typing.Union[str, Path],
                  tablesdir: typing.Union[str, Path],
+                 templates: typing.Union[str, Path],
                  user: str = 'flaqua',
                  host: str = 'localhost',
                  **kwargs,
@@ -67,10 +69,16 @@ class PathConfiguration:
         else:
             self.tab_data_fpath = self.tables_dir / fname
         #
+        self.templates_dir = self.root_dir / 'templates'
+        self.templates_dir.mkdir(exist_ok=True,
+                                 parents=True,
+                                 mode=0o775)
+
         # # define output paths
         # self.out_dir = self.data_dir / 'output'
         # self.out_dir.mkdir(exist_ok=True,
         #                    parents=True)
+
 
 match st.session_state['page']:
     case 'llm':
@@ -92,17 +100,18 @@ with CONFIG_YAML_FPATH.open("r") as f:
 
 sql_conf = DASHBOARD_CONF['sql']
 
+DATA_DIR = "/mnt/nfs_swag_nas/group_data/llm_eval"
 DASH_CONF = DASHBOARD_CONF['dashboard']
-
-
-
 
 # init configss
 path_conf = PathConfiguration(**CONFIG_DICT["local_fs"])
+TEMPLATE_DIR = path_conf.templates_dir
+DEFAULT_TEMPLATE_NAME = 'swag-tag-template'
+with (TEMPLATE_DIR / f"{DEFAULT_TEMPLATE_NAME}.json").open('r') as f:
+    DEFAULT_TEMPLATE = json.load(f)
 
 orth_conf = OrthancConfig(**CONFIG_DICT["orthanc"])
 
 db_conf = CONFIG_DICT["db"]
-
 
 sql_conf: typing.Mapping[str, typing.Any]
