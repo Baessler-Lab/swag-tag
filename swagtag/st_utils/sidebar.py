@@ -2,6 +2,7 @@ import typing
 from copy import deepcopy
 from functools import partial
 
+import pandas as pd
 import streamlit as st
 
 from config.config import sql_conf
@@ -53,13 +54,13 @@ def st_user_selection():
 
 
 
-def image_sidebar(**kwargs):
+def image_sidebar():
 
     # Case Iterator
-    with st.expander('Case Iterator', expanded=True):
+    with st.expander('Case Selection', expanded=True):
         cur_case_no = st.session_state['case_no']
         cur_case_id = st.session_state['cur_study_instance_uid']
-        st.write(f'Current case: {cur_case_id}[No. {cur_case_no}]')
+        st.write(f'#### Current case: {cur_case_id}[No. {cur_case_no}]')
 
         # relative iteration
         c1, c2 = st.columns((1, 1))
@@ -128,9 +129,13 @@ def settings(**kwargs):
                              )
 
         with st.form('Select configuration'):
+            try:
+                config_opts = config_meta[sql_conf['config_table']['prim_key']]
+            except KeyError:
+                config_opts = ["default"]
             st.selectbox(
                 label='Configuration',
-                options=config_meta[sql_conf['config_table']['prim_key']],
+                options=config_opts,
                 format_func=partial(lookup_label_from_config_meta, config_meta=config_meta),
                 key='selected_config_id',
                 disabled=latest,

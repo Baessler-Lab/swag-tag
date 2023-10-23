@@ -73,10 +73,13 @@ def lookup_label_from_config_meta(
         config_meta: pd.DataFrame,
 
 ):
-    return ' '.join(config_meta.loc[
-                        config_meta[sql_conf['config_table']['prim_key']] == config_id,
-                        [sql_conf['config_table']['prim_key'], sql_conf['config_table']['timestamp_col']]
-                    ].squeeze().apply(lambda x: str(x)).values)
+    if config_id == "default":
+        return "default"
+    else:
+        return ' '.join(config_meta.loc[
+                            config_meta[sql_conf['config_table']['prim_key']] == config_id,
+                            [sql_conf['config_table']['prim_key'], sql_conf['config_table']['timestamp_col']]
+                        ].squeeze().apply(lambda x: str(x)).values)
 
 
 def store_configuration(config_id: str, dashboard_configuration: typing.MutableMapping, conn: connection):

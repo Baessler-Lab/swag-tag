@@ -67,24 +67,30 @@ def get_last_user_annotation(annotations_meta: typing.Mapping[str | int, typing.
         annotation_meta = user_annotations_meta[last_annotation_id]
     except StopIteration:
         # no annotation for this user left
-        annotation, annotation_meta = get_default_annotation_and_meta(dash_conf=dash_conf)
+        annotation, annotation_meta = get_default_annotation_and_meta(
+            # llm_user=dash_conf.get("llm_user", "llama-2-70b-8bit")
+        )
     return annotation, annotation_meta
 
 
 def get_default_annotation_and_meta(
-        dash_conf: typing.Mapping[str, typing.Any]):
+        llm_user: str = None
+):
     # st.session_state.dash_conf['annotation_attributes']
-    annotation = defaultdict(lambda: None)
-    for tag in dash_conf['annotation_tags']:
-        tag: str
-        annotation_meta = defaultdict(lambda: 0)
-        # if tag in tag in st.session_state['tags']:
-        for attribute in dash_conf['annotation_attributes']:
-            def_val = dash_conf[f'default_annotation_{attribute}']
-            annotation_meta[attribute] = [int(val) for val in def_val] \
-                if isinstance(def_val, list) else int(def_val)
-        annotation[tag] = annotation_meta
+    # annotation = defaultdict(lambda: None)
+    # for tag in dash_conf['annotation_tags']:
+    #     tag: str
+    #     annotation_meta = defaultdict(lambda: 0)
+    #     # if tag in tag in st.session_state['tags']:
+    #     for attribute in dash_conf['annotation_attributes']:
+    #         def_val = dash_conf[f'default_annotation_{attribute}']
+    #         annotation_meta[attribute] = [int(val) for val in def_val] \
+    #             if isinstance(def_val, list) else int(def_val)
+    #     annotation[tag] = annotation_meta
+    annotation = None
     annotation_meta = {}
+
+
     return annotation, annotation_meta
 
 

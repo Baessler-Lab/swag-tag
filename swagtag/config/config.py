@@ -79,14 +79,16 @@ class PathConfiguration:
         # self.out_dir.mkdir(exist_ok=True,
         #                    parents=True)
 
-
-match st.session_state['page']:
-    case 'llm':
-        CONFIG_YAML_NAME = "llm-tag-config.yaml"
-    case 'swag-tag':
-        CONFIG_YAML_NAME = "config.yaml"
-    case _:
-        raise ValueError("'page' needs to be defined in st.session_state")
+if "page" in st.session_state:
+    match st.session_state['page']:
+        case 'llm':
+            CONFIG_YAML_NAME = "llm-tag-config.yaml"
+        case 'swag-tag':
+            CONFIG_YAML_NAME = "config.yaml"
+        case _:
+            raise ValueError("'page' needs to be defined in st.session_state")
+else:
+    CONFIG_YAML_NAME = "config.yaml"
 
 # load yaml
 CONFIG_PY_FPATH = Path(__file__)
@@ -115,3 +117,17 @@ orth_conf = OrthancConfig(**CONFIG_DICT["orthanc"])
 db_conf = CONFIG_DICT["db"]
 
 sql_conf: typing.Mapping[str, typing.Any]
+
+
+MODEL_CONFIG = {
+    'name': 'Llama-2-70b-chat-hf',
+    'path': '/home/pwoznicki/git/text-generation-webui/models/Llama-2-70b-chat-hf/',
+    'kwargs': {
+        "load_in_8bit": True,
+        "device_map": "auto",
+    }
+}
+
+DEFAULT_LLM = "llama-2-70b-8bit"
+
+ENDPOINT = "localhost:5000"

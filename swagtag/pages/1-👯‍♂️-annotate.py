@@ -5,7 +5,7 @@ if not 'page' in st.session_state:
     st.session_state['page'] = 'swag-tag'
 
 from config.load_config import load_dash_conf
-from swagtag.st_utils.sidebar import settings
+from swagtag.st_utils.sidebar import settings, image_sidebar
 from swagtag.st_utils.st_annotation import st_annotation_box
 from swagtag.st_utils.st_image import st_image_box
 from swagtag.st_utils.st_report import st_report_box
@@ -36,6 +36,7 @@ def app():
     # sidebar
     with tab_main:
         with st.sidebar:
+            image_sidebar()
             st_report_box()
         c1, c2 = st.columns([st.session_state["frac_img"], 100 - st.session_state["frac_img"]])
         with c1:

@@ -101,34 +101,14 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
             # last_annotation_id = next(reversed(user_annotations_meta.keys()))
             # annotation = annotations[annotation_id][sql_conf['result_table']['json_col']]
 
-    # identify non-zero tags (backward-compatibility):
-    active_tags = []
-    for tag in annotation.keys():
-        for attribute in st.session_state.dash_conf['annotation_attributes']:
-
-            try:
-                att = annotation[tag][attribute]
-                if attribute == 'probability':
-                    if att > 0:
-                        active_tags.append(tag)
-                # type conversion to new integer based jsons
-                non_def_val = annotation[tag][attribute]
-                annotation[tag][attribute] = [int(val) for val in non_def_val] \
-                    if isinstance(non_def_val, list) else int(non_def_val)
-            except KeyError:
-
-                def_val = st.session_state.dash_conf[f'default_annotation_{attribute}']
-                annotation[tag][attribute] = [int(val) for val in def_val] \
-                    if isinstance(def_val, list) else int(def_val)
-            # pass
-
-        # fill missing tag attributes
-
-    annotation['tags'] = active_tags
-
     # reset widget 'tags'
-    if f"tags_{st.session_state['cur_study_instance_uid']}" in st.session_state:
-        del st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]
+    for key in st.session_state.keys():
+        if f"annotation_checkbox_{st.session_state['cur_study_instance_uid']}" in key:
+            del st.session_state[key]
+        if f"annotation_radio_{st.session_state['cur_study_instance_uid']}" in key:
+            del st.session_state[key]
+    # if f"tags_{st.session_state['cur_study_instance_uid']}" in st.session_state:
+    #     del st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]
 
     if inplace:
         st.session_state['current_annotations'] = annotations

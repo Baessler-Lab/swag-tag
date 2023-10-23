@@ -10,7 +10,6 @@
         {
           "name": "limited diagnostic quality",
           "id": 2,
-          "single-selectable": false,
           "activatable": true,
           "children": [
             {
@@ -798,8 +797,8 @@
           "activatable": false,
           "children": [
             {
-              "name": "Immediate response (call requesting person)",
-              "id": 134,
+              "name": "Action needed (not at the same day)",
+              "id": 136,
               "activatable": true,
               "children": [],
               "single-selectable": true
@@ -812,8 +811,8 @@
               "single-selectable": true
             },
             {
-              "name": "Action needed (not at the same day)",
-              "id": 136,
+              "name": "Immediate response (call requesting person)",
+              "id": 134,
               "activatable": true,
               "children": [],
               "single-selectable": true
@@ -834,6 +833,13 @@
           "activatable": false,
           "children": [
             {
+              "name": "No prior or comparable investigation",
+              "id": 142,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            },
+            {
               "name": "Improvement",
               "id": 139,
               "activatable": true,
@@ -850,13 +856,6 @@
             {
               "name": "No change",
               "id": 141,
-              "activatable": true,
-              "children": [],
-              "single-selectable": true
-            },
-            {
-              "name": "No prior or comparable investigation",
-              "id": 142,
               "activatable": true,
               "children": [],
               "single-selectable": true

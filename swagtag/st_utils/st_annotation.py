@@ -1,6 +1,5 @@
 import json
 import typing
-from collections import defaultdict
 from functools import partial
 from pathlib import Path
 
@@ -12,7 +11,6 @@ from st_utils.states_swag_tag import update_annotation
 
 def handle_single_selection(node, report, unique_key, disabled):
     option_ids = [child["id"] for child in node["children"]]
-    print(report)
     selected_ids = [id_ for id_ in option_ids if report.get(str(id_), {}).get('activated', False)]
     assert len(selected_ids) <= 1, "Maximally one child can be selected"
     if not selected_ids:
@@ -25,7 +23,7 @@ def handle_single_selection(node, report, unique_key, disabled):
         node['name'],
         option_names,
         index=default_index,
-        key=f"{unique_key}_radio_{st.session_state.case_no}",
+        key=f"{unique_key}_annotation_radio_{st.session_state['cur_study_instance_uid']}",
         disabled=disabled)
 
     return selected_name
@@ -36,7 +34,7 @@ def handle_yes_no(node, report, unique_key, disabled):
     activated = st.checkbox(
         node['name'],
         value=activated_by_report,
-        key=f"{unique_key}_checkbox_{st.session_state.case_no}",
+        key=f"{unique_key}_annotation_checkbox_{st.session_state['cur_study_instance_uid']}",
         disabled=disabled
     )
 
@@ -97,6 +95,19 @@ def render_report(template_node, report=None, level=-1, state=None, disabled=Fal
 
     return state
 
+def validate_template(template_json):
+    id_set = set()
+
+    def check_unique_ids(node, id_set):
+        if 'id' in node:
+            assert node['id'] not in id_set, f"Duplicate ID found: {node['id']}"
+            id_set.add(node['id'])
+        if 'children' in node:
+            for child in node['children']:
+                check_unique_ids(child, id_set)
+
+    check_unique_ids(template_json, id_set)
+
 @st.cache_resource(ttl=10000)
 def load_templates(
         template_dir,
@@ -135,15 +146,39 @@ def st_annotation_select():
         last_annotation, last_annotation_meta = get_last_user_annotation(
             annotations_meta=st.session_state.current_annotations_meta,
             annotations=st.session_state.current_annotations,
-            user=st.session_state['current_user'],
+            user=st.session_state.dash_conf.get("llm_user", "llama-2-70b-8bit"),
             dash_conf=st.session_state.dash_conf,
         )
         annotation_options = list(st.session_state.current_annotations.keys()) + [None, ]
+
+        use_llm = st.checkbox(
+            "use LLM for default",
+            value=True
+        )
+
+
         if len(last_annotation_meta) > 0:
             last_annotation_index = list(st.session_state.current_annotations.keys()). \
                 index(last_annotation_meta['annotation_id'])
         else:
-            last_annotation_index = annotation_options.__len__() - 1
+            if use_llm:
+                try:
+                    last_annotation, last_annotation_meta = get_last_user_annotation(
+                        annotations_meta=st.session_state.current_annotations_meta,
+                        annotations=st.session_state.current_annotations,
+                        user=st.session_state.dash_conf.get("llm_user", "llama-2-70b-8bit"),
+                        dash_conf=st.session_state.dash_conf,
+                    )
+                    assert len(last_annotation_meta) > 0, "No llm generated annotation available for this report."
+                    last_annotation_index = list(st.session_state.current_annotations.keys()). \
+                        index(last_annotation_meta['annotation_id'])
+
+                except AssertionError:
+                    last_annotation_index = annotation_options.__len__() - 1
+
+
+            else:
+                last_annotation_index = annotation_options.__len__() - 1
 
         ann_id = st.selectbox(
             label='Stored annotations',
@@ -152,6 +187,8 @@ def st_annotation_select():
             index=last_annotation_index,
             key=f'selected_annotation_id',
         )
+
+
         update_annotation(annotation_id=ann_id)
 
 
@@ -164,14 +201,14 @@ def st_annotation_box():
 
     current_report = render_report(
         template_node=st.session_state["template"],
-        report=None
+        report=st.session_state["current_annotation"]
     )
     st.session_state['current_report'] = current_report
-    # with an_form:
-    #     st.form_submit_button('save_annotation',
-    #                           type='primary',
-    #                           on_click=store_annotation_callback,
-    #                           )
+
+    st.button(
+        label="Submit annotation",
+        on_click=store_annotation_callback,
+    )
 
 
 def load_annotation_callback():
@@ -179,47 +216,10 @@ def load_annotation_callback():
 
 
 def store_annotation_callback():
-    annotation_dict = {}
-    for tag in st.session_state.dash_conf['annotation_tags']:
-        annotation_meta = defaultdict(lambda: 0)
-        if tag in st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]:
-            annotation_meta.update({
-                'probability': int(st.session_state[f'annotation_proba_{tag}']),
-                'severity': int(st.session_state[f'annotation_severity_{tag}']),
-                'urgency': int(st.session_state[f'annotation_urgency_{tag}']),
-                'side': int(st.session_state[f'annotation_side_{tag}']),
-            })
-            match annotation_meta['side']:
-                case 0:
-                    annotation_meta['left_height'] = st.session_state.dash_conf['default_annotation_height']
-                    annotation_meta['right_height'] = st.session_state.dash_conf['default_annotation_height']
-                case 1:  # left
-                    annotation_meta['left_height'] = st.session_state[f'annotation_height_left_{tag}']
-                    annotation_meta['right_height'] = st.session_state.dash_conf['default_annotation_height']
-                case 2:  # right
-                    annotation_meta['left_height'] = st.session_state.dash_conf['default_annotation_height']
-                    annotation_meta['right_height'] = st.session_state[f'annotation_height_right_{tag}']
-                case 3:  # both
-                    annotation_meta['left_height'] = st.session_state[f'annotation_height_left_{tag}']
-                    annotation_meta['right_height'] = st.session_state[f'annotation_height_right_{tag}']
-                case _:
-                    raise ValueError('We consider only annotation_side 0-3 = irrelevant, left, right, both')
-        else:
-            annotation_meta.update({
-                'probability': int(st.session_state.dash_conf['default_annotation_probability']),
-                'severity': int(st.session_state.dash_conf['default_annotation_severity']),
-                'urgency': int(st.session_state.dash_conf['default_annotation_urgency']),
-                'side': int(st.session_state.dash_conf['default_annotation_side']),
-                'left_height': st.session_state.dash_conf['default_annotation_height'],
-                'right_height': st.session_state.dash_conf['default_annotation_height'],
-            })
-        annotation_dict[tag] = annotation_meta
-    # print(annotation_dict)
-
     save_annotation(
         study_instance_uid=st.session_state['cur_study_instance_uid'],
         accession_number=st.session_state['cur_accession_number'],
-        annotation=annotation_dict,
+        annotation=st.session_state['current_report'],
         author=st.session_state.current_user,
         conn=st.session_state['db_conn']
     )
