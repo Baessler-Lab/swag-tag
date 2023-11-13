@@ -31,6 +31,49 @@ def validate_template(template_json):
     check_unique_ids(template_json, id_set)
 
 
+binary_activation_map = {
+    "yes": True,
+    "no": False,
+}
+
+
+def postprocess_llm_to_flat(node: dict, activation_dict, flat_report=None, activated_by_parent=False):
+    if flat_report is None:
+        flat_report = {}
+
+    activation_id = f"answer_{node['id']}"
+
+    # First part - get activation status of the node
+    activated = False  # default value
+    if "activatable" in node and node["activatable"]:
+
+        if "single-selectable" in node and node["single-selectable"]:
+            activated = activated_by_parent
+        else:
+            try:
+                activated = binary_activation_map[activation_dict[activation_id]]
+            except KeyError:
+                raise ValueError(f"Unknown value in activation dict: {activation_dict[activation_id]}")
+
+        # Update the flat report
+        flat_report[str(node['id'])] = {'name': node['name'], 'activated': activated}
+
+    # Second part - parse children
+    if "single-select-from-children" in node and node["single-select-from-children"]:
+        activated_child_name = activation_dict.get(activation_id)
+        for child in node["children"]:
+            child_activated = (child["name"] == activated_child_name)
+            postprocess_llm_to_flat(child, activation_dict, flat_report=flat_report,
+                                    activated_by_parent=child_activated)
+
+    elif (not node.get('activatable', False)) or activated:
+        if 'children' in node:
+            for child in node["children"]:
+                postprocess_llm_to_flat(child, activation_dict, flat_report=flat_report, activated_by_parent=False)
+
+    return flat_report
+
+
 def structurize_report(report: str, template: typing.Mapping, endpoint: str):
     response = requests.post(f"http://{endpoint}/predict", json={"report": report, "template": template})
     if not response.ok:
@@ -71,11 +114,17 @@ def structurize_report_llm(report_content: typing.Mapping[str, str]):
     {impression} \n
     """
 
-    llm_annotation = structurize_report(
+    result = structurize_report(
         report=findings_impression,
         template=config.config.DEFAULT_TEMPLATE,
         endpoint=config.config.ENDPOINT
-    ).get("activation_dict", {})
+    )
+    llm_annotation = postprocess_llm_to_flat(
+        node=config.config.DEFAULT_TEMPLATE,
+        activation_dict=result.get('activation_dict', {}),
+        activated_by_parent=False,
+                            )
+    # llm_annotation = result.get('result', {})
     return llm_annotation
 
 
@@ -145,7 +194,7 @@ def scrape_filetree_and_save_to_database(use_llm: bool = False):
             reports_uri_vals_to_insert.append(report_uri_mapping)
             reports_uri_vals_to_insert: typing.MutableSequence[typing.Mapping[str, ...]]
 
-            if k % 10 == 0:
+            if k % 1 == 0:
                 # bulk insert into DB
                 insert_into_db(
                     dicom_dicts=reports_uri_vals_to_insert,

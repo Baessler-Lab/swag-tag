@@ -5,6 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
+import config.config
 from annotation.io import save_annotation, get_last_user_annotation, lookup_label_from_annotation_meta
 from st_utils.states_swag_tag import update_annotation
 
@@ -19,11 +20,13 @@ def handle_single_selection(node, report, unique_key, disabled):
         selected_id = selected_ids[0]
     default_index = option_ids.index(selected_id)
     option_names = [child["name"] for child in node["children"]]
+    current_meta_id = st.session_state.get("current_annotation_id", "default")
+
     selected_name = st.radio(
         node['name'],
         option_names,
         index=default_index,
-        key=f"{unique_key}_annotation_radio_{st.session_state['cur_study_instance_uid']}",
+        key=f"{unique_key}_annotation_radio_{st.session_state['cur_study_instance_uid']}_{current_meta_id}",
         disabled=disabled)
 
     return selected_name
@@ -31,10 +34,12 @@ def handle_single_selection(node, report, unique_key, disabled):
 
 def handle_yes_no(node, report, unique_key, disabled):
     activated_by_report = report.get(str(node["id"]), {}).get('activated', False)
+
+    current_meta_id = st.session_state.get("current_annotation_id")
     activated = st.checkbox(
         node['name'],
         value=activated_by_report,
-        key=f"{unique_key}_annotation_checkbox_{st.session_state['cur_study_instance_uid']}",
+        key=f"{unique_key}_annotation_checkbox_{st.session_state['cur_study_instance_uid']}_{current_meta_id}",
         disabled=disabled
     )
 
@@ -95,6 +100,7 @@ def render_report(template_node, report=None, level=-1, state=None, disabled=Fal
 
     return state
 
+
 def validate_template(template_json):
     id_set = set()
 
@@ -107,6 +113,7 @@ def validate_template(template_json):
                 check_unique_ids(child, id_set)
 
     check_unique_ids(template_json, id_set)
+
 
 @st.cache_resource(ttl=10000)
 def load_templates(
@@ -156,7 +163,6 @@ def st_annotation_select():
             value=True
         )
 
-
         if len(last_annotation_meta) > 0:
             last_annotation_index = list(st.session_state.current_annotations.keys()). \
                 index(last_annotation_meta['annotation_id'])
@@ -166,7 +172,7 @@ def st_annotation_select():
                     last_annotation, last_annotation_meta = get_last_user_annotation(
                         annotations_meta=st.session_state.current_annotations_meta,
                         annotations=st.session_state.current_annotations,
-                        user=st.session_state.dash_conf.get("llm_user", "llama-2-70b-8bit"),
+                        user=st.session_state.dash_conf.get("llm_user", config.config.DEFAULT_LLM),
                         dash_conf=st.session_state.dash_conf,
                     )
                     assert len(last_annotation_meta) > 0, "No llm generated annotation available for this report."
@@ -188,8 +194,7 @@ def st_annotation_select():
             key=f'selected_annotation_id',
         )
 
-
-        update_annotation(annotation_id=ann_id)
+        update_annotation(annotation_id=ann_id, inplace=True)
 
 
 # noinspection DuplicatedCode
@@ -198,12 +203,10 @@ def st_annotation_box():
 
     # select annotations
     st_annotation_select()
-
-    current_report = render_report(
+    st.session_state['current_report'] = render_report(
         template_node=st.session_state["template"],
         report=st.session_state["current_annotation"]
     )
-    st.session_state['current_report'] = current_report
 
     st.button(
         label="Submit annotation",
@@ -223,4 +226,6 @@ def store_annotation_callback():
         author=st.session_state.current_user,
         conn=st.session_state['db_conn']
     )
+    update_annotation(inplace=True)
     st.success('Successfully stored your annotation.')
+

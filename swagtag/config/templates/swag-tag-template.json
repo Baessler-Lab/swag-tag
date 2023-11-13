@@ -1,15 +1,16 @@
 {
-  "name": "## X-ray chest template",
+  "name": "X-ray chest template",
   "id": 0,
   "children": [
     {
-      "name": "### Diagnostic quality",
+      "name": "diagnostic quality",
       "id": 1,
       "activatable": false,
       "children": [
         {
           "name": "limited diagnostic quality",
           "id": 2,
+          "single-selectable": false,
           "activatable": true,
           "children": [
             {
@@ -48,7 +49,7 @@
       ]
     },
     {
-      "name": "### Foreign material",
+      "name": "foreign material",
       "id": 8,
       "children": [
         {
@@ -153,7 +154,7 @@
       ]
     },
     {
-      "name": "### Diaphragm and upper abdomen",
+      "name": "Diaphragm and upper abdomen",
       "id": 26,
       "activatable": false,
       "children": [
@@ -241,7 +242,7 @@
       ]
     },
     {
-      "name": "### Pleural cavity",
+      "name": "Pleural cavity",
       "id": 40,
       "activatable": false,
       "children": [
@@ -373,7 +374,7 @@
       ]
     },
     {
-      "name": "###  Lungs",
+      "name": "lungs",
       "id": 61,
       "activatable": false,
       "children": [
@@ -610,7 +611,7 @@
       ]
     },
     {
-      "name": "### Mediastinum",
+      "name": "mediastinum",
       "id": 103,
       "activatable": false,
       "children": [
@@ -696,7 +697,7 @@
       ]
     },
     {
-      "name": "### Bones and soft tissue",
+      "name": "Bones and soft tissue",
       "id": 117,
       "activatable": false,
       "children": [
@@ -718,7 +719,7 @@
             {
               "name": "location",
               "id": 121,
-              "activatable": true,
+              "single-select-from-children": true,
               "children": [
                 {
                   "name": "left",
@@ -755,24 +756,21 @@
             {
               "name": "location",
               "id": 127,
-              "activatable": true,
+              "activatable": false,
               "children": [
                 {
-                  "name": "left",
+                  "name": "HWS",
                   "id": 128,
-                  "single-selectable": true,
                   "activatable": true
                 },
                 {
-                  "name": "right",
+                  "name": "BWS",
                   "id": 129,
-                  "single-selectable": true,
                   "activatable": true
                 },
                 {
-                  "name": "bilateral",
+                  "name": "LWS",
                   "id": 130,
-                  "single-selectable": true,
                   "activatable": true
                 }
               ]
@@ -787,7 +785,7 @@
       ]
     },
     {
-      "name": "### Overall impression",
+      "name": "Overall impression",
       "id": 132,
       "activatable": false,
       "children": [
@@ -797,8 +795,8 @@
           "activatable": false,
           "children": [
             {
-              "name": "Action needed (not at the same day)",
-              "id": 136,
+              "name": "Immediate response (call requesting person)",
+              "id": 134,
               "activatable": true,
               "children": [],
               "single-selectable": true
@@ -811,8 +809,8 @@
               "single-selectable": true
             },
             {
-              "name": "Immediate response (call requesting person)",
-              "id": 134,
+              "name": "Action needed (not at the same day)",
+              "id": 136,
               "activatable": true,
               "children": [],
               "single-selectable": true
@@ -833,13 +831,6 @@
           "activatable": false,
           "children": [
             {
-              "name": "No prior or comparable investigation",
-              "id": 142,
-              "activatable": true,
-              "children": [],
-              "single-selectable": true
-            },
-            {
               "name": "Improvement",
               "id": 139,
               "activatable": true,
@@ -856,6 +847,13 @@
             {
               "name": "No change",
               "id": 141,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            },
+            {
+              "name": "No prior or comparable investigation",
+              "id": 142,
               "activatable": true,
               "children": [],
               "single-selectable": true

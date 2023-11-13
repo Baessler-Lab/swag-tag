@@ -143,6 +143,7 @@ def reset_annotation_widgets(node: typing.Dict[str, typing.Any]):
     if 'children' in node:
         for child in node['children']:
             reset_annotation_widgets(child)
+
     if f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}" in st.session_state:
         del st.session_state[f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}"]
 

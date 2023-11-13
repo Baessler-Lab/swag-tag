@@ -88,7 +88,7 @@ def get_default_annotation_and_meta(
     #             if isinstance(def_val, list) else int(def_val)
     #     annotation[tag] = annotation_meta
     annotation = None
-    annotation_meta = {}
+    annotation_meta = defaultdict(lambda: None)
 
 
     return annotation, annotation_meta

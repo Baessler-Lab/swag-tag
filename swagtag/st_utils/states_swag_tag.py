@@ -101,22 +101,27 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
             # last_annotation_id = next(reversed(user_annotations_meta.keys()))
             # annotation = annotations[annotation_id][sql_conf['result_table']['json_col']]
 
-    # reset widget 'tags'
-    for key in st.session_state.keys():
-        if f"annotation_checkbox_{st.session_state['cur_study_instance_uid']}" in key:
-            del st.session_state[key]
-        if f"annotation_radio_{st.session_state['cur_study_instance_uid']}" in key:
-            del st.session_state[key]
-    # if f"tags_{st.session_state['cur_study_instance_uid']}" in st.session_state:
-    #     del st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]
+
+    # reset_widgets()
 
     if inplace:
         st.session_state['current_annotations'] = annotations
         st.session_state['current_annotations_meta'] = annotations_meta
         st.session_state['current_annotation'] = annotation
         st.session_state['current_annotation_meta'] = annotation_meta
+        st.session_state['current_annotation_id'] = annotation_meta.get(sql_conf['result_table']['prim_key'], "default")
     else:
         return annotation
+
+
+
+def reset_widgets():
+    # reset widget 'tags'
+    for key in st.session_state.keys():
+        if f"annotation_checkbox_{st.session_state['cur_study_instance_uid']}" in key:
+            del st.session_state[key]
+        if f"annotation_radio_{st.session_state['cur_study_instance_uid']}" in key:
+            del st.session_state[key]
 
 
 def update_users(inplace: bool = True):
