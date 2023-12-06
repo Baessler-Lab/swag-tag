@@ -30,8 +30,6 @@ since one of the required packages, psycopg2, has bugs regarding system-level li
    git clone https://github.com/Baessler-Lab/swag-tag.git
    cd swag-tag
    ```
-2. Make sure that the volumes (e.g. mimic files and templates) point to the right place on host system
-Make sure that a postgres image
 
 ## Configuration
 The configuration is stored under `swagtag/config/config.yaml`. Change the settings (e.g. directories) to your needs.
