@@ -1,4 +1,5 @@
 import json
+import os
 import typing
 from pathlib import Path
 import streamlit as st
@@ -79,6 +80,7 @@ class PathConfiguration:
         # self.out_dir.mkdir(exist_ok=True,
         #                    parents=True)
 
+
 if "page" in st.session_state:
     match st.session_state['page']:
         case 'llm':
@@ -91,7 +93,8 @@ else:
     CONFIG_YAML_NAME = "config.yaml"
 
 # load yaml
-CONFIG_PY_FPATH = Path(__file__)
+# raise RuntimeError("CONFIG_DIR = %s", os.getenv("CONFIG_DIR",))
+CONFIG_PY_FPATH = Path(os.getenv("CONFIG_DIR", __file__))
 CONFIG_YAML_FPATH = CONFIG_PY_FPATH.with_name(CONFIG_YAML_NAME)
 CONFIG_DB_FPATH = CONFIG_PY_FPATH.with_name('db_config.yaml')
 with CONFIG_DB_FPATH.open("r") as f:
@@ -117,7 +120,6 @@ orth_conf = OrthancConfig(**CONFIG_DICT["orthanc"])
 db_conf = CONFIG_DICT["db"]
 
 sql_conf: typing.Mapping[str, typing.Any]
-
 
 MODEL_CONFIG = {
     'name': 'Llama-2-70b-chat-hf',

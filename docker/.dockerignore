@@ -1,0 +1,6 @@
+docker
+*.md
+!README.md
+.git
+.gitignore
+../.secrets

@@ -1,0 +1,23 @@
+db:
+  host: python-app-databases
+  port: 5432
+  user: postgres
+  password: SmilelikeyouMeanIt
+  dbname: swag
+
+local_fs:
+  host: localhost
+  user: flaqua
+  rootdir: /data_root_dir
+  datadir: files
+  tablesdir: tables
+  fname: instance_tags.csv
+  templates: templates
+
+
+orthanc:
+  host: orthanc-swag-nas
+  port: 8042
+  protocol: http
+  source_modality: PHOENIX
+  max_workers: 16
