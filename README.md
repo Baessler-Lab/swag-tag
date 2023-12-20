@@ -15,8 +15,6 @@ Current features are:
 - Applying prefilled LL
 - Setting min and max values for windowing X-Ray DICOMs
 - Moving between slices along the z-axis for 3D-scans (e.g. CT)
-- Templates can be defined using `JSON` files.
-    - The template allows nested structures with one-of-many and multi-select children nodes
 - Moving between dataset cases and specifying a case to jump directly to it
 - Previous annotations are loaded directly into the case.
 - loading and saving user configurations
