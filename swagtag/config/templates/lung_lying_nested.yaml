@@ -1,0 +1,152 @@
+template:
+  limited assessability:
+    - 'no'
+    - incomplete depiction
+    - reduced inspiratory depth
+    - incorrect rotation to the right
+    - incorrect rotation to the left
+    - incorrect angulation cranially
+    - incorrect angulation caudally
+
+  foreign material:
+    - nasogastric (Dobhoff) tube:
+      - 'no'
+      - 'yes'
+    - endotracheal tube:
+      - 'no'
+      - 'yes'
+    - chest tube:
+      - 'no'
+      - 'yes':
+        side:
+          - left
+          - right
+          - bilateral
+
+  diaphragm position:
+    - normal
+    - elevated:
+      side:
+        - left
+        - right
+        - bilateral
+    - flattened:
+      side:
+        - left
+        - right
+        - bilateral
+
+  pneumoperitoneum:
+    - 'no'
+    - 'yes'
+
+  pneumothorax:
+    - 'no'
+    - 'yes':
+      type:
+        - unspecified
+        - apical
+        - basal
+        - tension
+      side:
+        - left
+        - right
+        - bilateral
+
+  hemothorax:
+    - 'no'
+    - 'yes'
+
+  pleural effusion:
+    - 'no'
+    - 'yes':
+      severity:
+        - unspecified
+        - small
+        - moderate
+        - marked
+      side:
+        - left
+        - right
+        - bilateral
+
+  atelectasis:
+    - 'no'
+    - 'yes':
+      type:
+      - unspecified
+      - compressive atelectasis
+      - subsegmental atelectasis
+      - linear (platelike) atelectasis
+      - round atelectasis
+      - obstructive atelectasis
+      location:
+        - lung base
+        - lung middle zone
+        - lung upper zone
+      side:
+        - left
+        - right
+        - bilateral
+
+
+  inflammatory infiltrates:
+    - 'no'
+    - 'yes':
+      location:
+        - upper zone
+        - middle zone
+        - lower zone
+      side:
+        - left
+        - right
+        - bilateral
+
+  pulmonary edema:
+    - 'no'
+    - 'yes':
+      type:
+        - unspecified
+        - interstitial
+        - alveolar
+        - reexpansion
+
+  heart size:
+    - normal
+    - cardiomegaly
+    - enlarged due to projection (a.p. projection misrotation) and/or shallow inspiration
+
+  mediastinum width:
+    - normal
+    - widened:
+        side:
+          - symmetrically widened
+          - widened to the right
+          - widened to the left
+
+  mediastinum location:
+    - midline
+    - shift to the right
+    - shift to the left
+
+  pneumomediastinum:
+    - 'no'
+    - 'yes'
+
+  degenerative bone changes:
+    - 'no'
+    - 'yes'
+  bone fractures:
+    - 'no'
+    - 'yes'
+
+  soft tissue envelope:
+    - subcutaneous emphysema:
+      - 'no'
+      - 'yes'
+    - asymmetric swelling:
+      - 'no'
+      - 'yes'
+    - asymmetric nipple shadow:
+      - 'no'
+      - 'yes'

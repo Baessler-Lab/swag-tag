@@ -9,7 +9,7 @@ import streamlit as st
 from dicom_base.orthanc import export
 from dicom_base.orthanc import find
 
-from config.config import orth_conf, dash_conf, path_conf
+from config.config import orth_conf, DASH_CONF, path_conf
 from image.itk_image import ImageBuffer
 
 log = logging.getLogger(__name__)
@@ -92,13 +92,13 @@ def load_single_uri_image(
             raise NotImplementedError('We currently support loading from orthanc and filesystem only.')
 
 
-@st.cache_data(max_entries=dash_conf['max_img_buffer_size'])
+@st.cache_data(max_entries=DASH_CONF['max_img_buffer_size'])
 def read_jpg(fpath: Path):
     img = sitk.ReadImage(fpath.absolute().__str__(), imageIO='JPEGImageIO')
     return img
 
 
-@st.cache_data(max_entries=dash_conf['max_img_buffer_size'])
+@st.cache_data(max_entries=DASH_CONF['max_img_buffer_size'])
 def read_nifti(fpath: Path):
     img = sitk.ReadImage(fpath.absolute().__str__(), imageIO='NiftiImageIO')
     return img

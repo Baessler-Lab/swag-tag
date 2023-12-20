@@ -1,0 +1,37 @@
+version: '3.5'
+
+services:
+  swagtag:
+    build:
+      context: ..
+      dockerfile: docker/webapp.Dockerfile
+      secrets:
+        - acc_token
+    #      ssh:
+    #        - default
+
+    volumes:
+      - ./config:/config:ro
+      - /mnt/nfs_swag_nas/group_data/mimic:/data_root_dir:ro
+    environment:
+      - CONFIG_DIR=/config/config.yaml
+    networks:
+      - deploy-network
+#      - hostnet
+    ports:
+      - "8510:8510"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+
+networks:
+  deploy-network:
+    external: true
+    name: xnat-services
+#  hostnet:
+#    external: true
+#    name: host
+
+secrets:
+  acc_token:
+    file: ../.secrets/acc_token.txt

@@ -1,25 +1,21 @@
 
+#db:
+#  host: localhost
+#  port: 5002
+#  user: postgres
+#  password: SmilelikeyouMeanIt
+#  dbname: llm_tag
+
+
 dashboard:
-  config_id: 'default'
-  page_title: 'swag-tag'
-  title: 'swag-tag: A Streamlit-based webapp for annotation of medical images and reports.'
-  default_case_no: 0
-  default_frac_img: 70
-  window_default_range:
-    - 0
-    - 100
-  window_default_min_max:
-    {
-      min_value: 0,
-      max_value: 100,
-    }
-  max_img_buffer_size: 10
+  config_id: 'default_llm'
+  page_title: 'LLM-Tag'
+  title: 'LLM-Tag: A Streamlit-based webapp for annotation of reports guided by large language models.'
+  default_template: 'template_english_structured.json'
+  default_case_no: 1000
   report_columns:
     - 'examination'
     - 'indication'
-    - 'history'
-    - 'comparison'
-    - 'technique'
     - 'findings'
     - 'impression'
   annotation_tags:
@@ -165,7 +161,7 @@ sql:
   #    }
   result_table:
     {
-      table_name: 'annotations_swag_tag',
+      table_name: 'annotations_llm',
       columns:
         {
           'annotation_id': 'SERIAL',

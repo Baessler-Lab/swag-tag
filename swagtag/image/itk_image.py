@@ -4,7 +4,7 @@ import SimpleITK as sitk
 import numpy as np
 
 # import streamlit as st
-from config.config import dash_conf
+from config.config import DASH_CONF
 
 
 class ImageBuffer(sitk.Image):
@@ -42,7 +42,7 @@ class ImageBuffer(sitk.Image):
         if window_pct is not None:
             self.window_pct = window_pct
         else:
-            self.window_pct = dash_conf['window_default_range']
+            self.window_pct = DASH_CONF['window_default_range']
 
         if window_abs is not None:
             self.window_abs = window_abs

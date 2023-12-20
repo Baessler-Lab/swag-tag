@@ -6,7 +6,7 @@ from datetime import datetime
 import pandas as pd
 from psycopg2._psycopg import connection
 
-from config.config import dash_conf, sql_conf
+from config.config import DASH_CONF, sql_conf
 from sql.db_utils import read_jsons_to_list_of_dicts, insert_into_db
 
 log = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def load_dash_conf(
         default: bool = True,
 ) -> dict:
     if default:
-        return dash_conf
+        return DASH_CONF
     else:
         try:
             if conn is None:
@@ -38,14 +38,14 @@ def load_dash_conf(
             )
             latest_dashboard_config = configs_list[-1][sql_conf['config_table']['json_col']]
             # check for missing keys and default do dash_conf
-            for key in dash_conf.keys():
+            for key in DASH_CONF.keys():
                 if key not in latest_dashboard_config:
-                    latest_dashboard_config[key] = dash_conf[key]
+                    latest_dashboard_config[key] = DASH_CONF[key]
 
             return latest_dashboard_config
         except Exception as exc:
             log.exception('Error loading the config from the database. Default config is returned instead.')
-            return dash_conf
+            return DASH_CONF
 
 
 def load_dash_conf_meta(
@@ -73,10 +73,13 @@ def lookup_label_from_config_meta(
         config_meta: pd.DataFrame,
 
 ):
-    return ' '.join(config_meta.loc[
-                        config_meta[sql_conf['config_table']['prim_key']] == config_id,
-                        [sql_conf['config_table']['prim_key'], sql_conf['config_table']['timestamp_col']]
-                    ].squeeze().apply(lambda x: str(x)).values)
+    if config_id == "default":
+        return "default"
+    else:
+        return ' '.join(config_meta.loc[
+                            config_meta[sql_conf['config_table']['prim_key']] == config_id,
+                            [sql_conf['config_table']['prim_key'], sql_conf['config_table']['timestamp_col']]
+                        ].squeeze().apply(lambda x: str(x)).values)
 
 
 def store_configuration(config_id: str, dashboard_configuration: typing.MutableMapping, conn: connection):

@@ -18,3 +18,4 @@ dependencies:
   - numpy>=1.23
   - pip:
     - git+https://github.com/Baessler-Lab/dicom-base
+    - git+https://@github.com/pwoznicki/llm-tag.git@improve_llm

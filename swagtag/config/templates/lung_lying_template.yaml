@@ -1,0 +1,216 @@
+activatable: &yesno
+  present:
+    - no
+    - yes
+
+misplaced: &opt_misplaced
+  placement:
+    - regular
+    - misplaced
+opt_side: &opt_side
+  side:
+    - 'right'
+    - 'left'
+    - 'both sides'
+multi_height: &multi_height
+  vertical location:
+    - 'Upper field'
+    - 'Middle field'
+    - 'Lower field'
+  singe-selection: False
+opt_side_multi_height: &opt_side_multi_height
+  side:
+    'right':
+      <<: *multi_height
+    'left':
+      <<: *multi_height
+
+opt_widening: &opt_widening
+  - 'to left'
+  - 'to right'
+  - 'symmetric'
+
+opt_severity: &opt_severity
+  severity:
+    - 'mild'
+    - 'moderate'
+    - 'extensive / marked'
+
+opt_mediastinal_loc: &opt_mediastinal_loc
+  - 'midline '
+  - 'displaced to the right (not rotationally related)'
+  - 'displaced to the left (not rotationally related)'
+
+freetext: &freetext
+  '<Free text headline>': '<Free text>'
+
+structures:
+  Prior Examinations:
+    items:
+      - 'None available'
+      - '<Free text>'
+  Assessability:
+    items:
+      - 'not limited'
+      - 'incomplete depiction'
+      - 'reduced inspiratory depth'
+      - 'not properly rotated or angulated'
+    global_opts:
+      []
+  Foreign Material:
+    items:
+      - 'venous catheter':
+          - location: *freetext
+      - 'pleural/ thoracic drainage':
+          - location: *freetext
+      - 'tracheal cannula'
+      - 'endotracheal tube (ETT)'
+      - 'nasogastric tube'
+      - 'mediastinal/pericardial drain'
+      - 'valve replacement'
+      - 'arterial catheter'
+      - <<: *freetext
+    global_opts:
+      - <<: *opt_misplaced
+  Diaphragm:
+    items:
+      - 'regular position'
+      - 'elevated due to shallow inspiration'
+      - 'diaphragmatic elevation'
+      - 'diaphragmatic depression'
+      - 'diaphragmatic eventration'
+    global_opts:
+      - *opt_side
+  Abdominal Cavity:
+    items:
+      - 'regular'
+      - 'pneumoperitoneum / abdominal free air'
+      - 'dilated bowel'
+      - <<: *freetext
+    global_opts:
+      - *opt_side
+  Pleural Cavity:
+    Pneumothorax:
+      items:
+        - 'none'
+        - 'Loculated pneumothorax'
+        - 'Interlobular/fissural pneumothorax'
+        - 'Tension pneumothorax'
+      global_opts:
+        - *opt_side
+    Pleural Effusion:
+      items:
+        - 'none'
+        - 'pleural effusion'
+        - 'adhesive effusion components'
+      global_opts:
+        - *opt_side
+        - *opt_severity
+
+  Lungs:
+    Ventilation Disorders:
+      items:
+        - 'none'
+        - 'subsegmental atelectasis'
+        - 'Plate atelectasis'
+        - 'Compression atelectasis'
+        - 'Round atelectasis'
+        - 'Obstructive atelectasis'
+      global_opts:
+        <<: *opt_side_multi_height
+    Inflammatory Infiltrates:
+      items:
+        - 'none'
+        - 'possible/not excluded':
+          <<: *opt_side_multi_height
+        - 'urgent suspicion/ highly likely':
+            <<: *opt_side_multi_height
+      global_opts:
+        - *opt_side
+    Pulmonary Edema:
+      items:
+        - 'none'
+        - 'interstitial pulmonary edema'
+        - 'alveolar pulmonary edema'
+        - 'Re-expansion pulmonary edema'
+      global_opts:
+        []
+  Heart:
+    items:
+      - 'regular'
+      - 'enlarged due to projection (a.p. projection, misrotation) and/or shallow inspiration'
+      - 'Cardiomegaly'
+      - 'Pneumopericardium'
+    global_opts:
+      []
+  Mediastinum:
+    items:
+      - 'displaced due to misrotation'
+      - 'mediastinal location': *opt_mediastinal_loc
+      - 'widened': *opt_widening
+      - 'Pneumomediastinum'
+    global_opts:
+      []
+  Bony Structures:
+    items:
+      - 'regular'
+      - <<: *freetext
+    global_opts:
+      []
+  Soft Tissue Envelope:
+    items:
+      - 'regular'
+      - 'soft tissue emphysema'
+      - 'asymmetric swelling'
+      - 'asymmetric mammary shadow'
+      - 'Severe obesity'
+    global_opts:
+      []
+
+#
+#attributes:
+#  opt_side:
+#    - 'right'
+#    - 'left'
+#    - 'both sides'
+#  opt_widening:
+#    - 'to left'
+#    - 'to right'
+#    - 'symmetric'
+#  multi_height:
+#    - 'Upper field'
+#    - 'Middle field'
+#    - 'Lower field'
+#
+#  opt_pneumomediastinum:
+#    - 'no pneumomediastinum'
+#    - 'pneumomediastinum'
+#  opt_severity:
+#    - 'mild'
+#    - 'moderate'
+#    - 'extensive / marked'
+#  opt_foreign_body:
+#    - 'not mentioned'
+#    - 'regular placement'
+#    - 'misplaced'
+#
+#default_attr_options: [ ]
+#
+#attr_options:
+#  Pneumothorax:
+#    - opt_side: multi_height
+#  Ventilation disorders:
+#    - opt_side
+#    - multi_height
+#    - opt_severity
+#  Inflammatory Infiltrates:
+#    - opt_side
+#    - multi_height
+#    - opt_severity
+#
+#  Mediastinum:
+#    - mediastinal_loc
+#    - opt_widening
+#    - opt_pneumomediastinum
+#  Foreign Material:
+#    - opt_foreign_body

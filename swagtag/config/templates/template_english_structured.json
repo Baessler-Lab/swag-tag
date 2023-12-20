@@ -1,0 +1,632 @@
+{
+    "name": "template",
+    "id": 1,
+    "children": [
+        {
+            "name": "limited assessability",
+            "id": 2,
+            "single-select-from-children": true,
+            "children": [
+                {
+                    "name": "no",
+                    "id": 3,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "incomplete depiction",
+                    "id": 4,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "reduced inspiratory depth",
+                    "id": 5,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "incorrect rotation to the right",
+                    "id": 6,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "incorrect rotation to the left",
+                    "id": 7,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "incorrect angulation cranially",
+                    "id": 8,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "incorrect angulation caudally",
+                    "id": 9,
+                    "single-selectable": true,
+                    "activatable": true
+                }
+            ]
+        },
+        {
+            "name": "foreign material",
+            "id": 10,
+            "children": [
+                {
+                    "name": "nasogastric (Dobhoff) tube",
+                    "id": 10,
+                    "activatable": true
+                },
+                {
+                    "name": "endotracheal tube",
+                    "id": 11,
+                    "activatable": true
+                },
+                {
+                    "name": "chest tube",
+                    "id": 12,
+                    "activatable": true,
+                    "children": [
+                        {
+                            "name": "side",
+                            "id": 13,
+                            "single-select-from-children": true,
+                            "children": [
+                                {
+                                    "name": "left",
+                                    "id": 14,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                },
+                                {
+                                    "name": "right",
+                                    "id": 15,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                },
+                                {
+                                    "name": "bilateral",
+                                    "id": 16,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "diaphragm position",
+            "id": 17,
+            "children": [
+                {
+                    "name": "normal",
+                    "id": 18,
+                    "activatable": true
+                },
+                {
+                    "name": "elevated",
+                    "id": 19,
+                    "activatable": true,
+                    "children": [
+                        {
+                            "name": "side",
+                            "id": 20,
+                            "single-select-from-children": true,
+                            "children": [
+                                {
+                                    "name": "left",
+                                    "id": 21,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                },
+                                {
+                                    "name": "right",
+                                    "id": 22,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                },
+                                {
+                                    "name": "bilateral",
+                                    "id": 23,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "flattened",
+                    "id": 24,
+                    "activatable": true,
+                    "children": [
+                        {
+                            "name": "side",
+                            "id": 25,
+                            "single-select-from-children": true,
+                            "children": [
+                                {
+                                    "name": "left",
+                                    "id": 26,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                },
+                                {
+                                    "name": "right",
+                                    "id": 27,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                },
+                                {
+                                    "name": "bilateral",
+                                    "id": 28,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "pneumoperitoneum",
+            "id": 29,
+            "activatable": true
+        },
+        {
+            "name": "pneumothorax",
+            "id": 32,
+            "activatable": true,
+            "children": [
+                {
+                    "name": "type",
+                    "id": 35,
+                    "single-select-from-children": true,
+                    "children": [
+                        {
+                            "name": "unspecified",
+                            "id": 36,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "apical",
+                            "id": 37,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "basal",
+                            "id": 38,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "tension",
+                            "id": 39,
+                            "single-selectable": true,
+                            "activatable": true
+                        }
+                    ]
+                },
+                {
+                    "name": "side",
+                    "id": 40,
+                    "single-select-from-children": true,
+                    "children": [
+                        {
+                            "name": "left",
+                            "id": 41,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "right",
+                            "id": 42,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "bilateral",
+                            "id": 43,
+                            "single-selectable": true,
+                            "activatable": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "hemothorax",
+            "id": 44,
+            "activatable": true
+        },
+        {
+            "name": "pleural effusion",
+            "id": 47,
+            "children": [
+                {
+                    "name": "severity",
+                    "id": 50,
+                    "single-select-from-children": true,
+                    "children": [
+                        {
+                            "name": "unspecified",
+                            "id": 51,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "small",
+                            "id": 52,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "moderate",
+                            "id": 53,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "marked",
+                            "id": 54,
+                            "single-selectable": true,
+                            "activatable": true
+                        }
+                    ]
+                },
+                {
+                    "name": "side",
+                    "id": 55,
+                    "single-select-from-children": true,
+                    "children": [
+                        {
+                            "name": "left",
+                            "id": 56,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "right",
+                            "id": 57,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "bilateral",
+                            "id": 58,
+                            "single-selectable": true,
+                            "activatable": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "atelectasis",
+            "id": 59,
+            "activatable": true,
+            "children": [
+                {
+                    "name": "type",
+                    "id": 62,
+                    "single-select-from-children": true,
+                    "children": [
+                        {
+                            "name": "unspecified",
+                            "id": 63,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "compressive atelectasis",
+                            "id": 64,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "subsegmental atelectasis",
+                            "id": 65,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "linear (platelike) atelectasis",
+                            "id": 66,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "round atelectasis",
+                            "id": 67,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "obstructive atelectasis",
+                            "id": 68,
+                            "single-selectable": true,
+                            "activatable": true
+                        }
+                    ]
+                },
+                {
+                    "name": "location",
+                    "id": 69,
+                    "children": [
+                        {
+                            "name": "lung base",
+                            "id": 70,
+                            "activatable": true
+                        },
+                        {
+                            "name": "lung middle zone",
+                            "id": 71,
+                            "activatable": true
+                        },
+                        {
+                            "name": "lung upper zone",
+                            "id": 72,
+                            "activatable": true
+                        }
+                    ]
+                },
+                {
+                    "name": "side",
+                    "id": 73,
+                    "single-select-from-children": true,
+                    "children": [
+                        {
+                            "name": "left",
+                            "id": 74,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "right",
+                            "id": 75,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "bilateral",
+                            "id": 76,
+                            "single-selectable": true,
+                            "activatable": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "inflammatory infiltrates",
+            "id": 77,
+            "activatable": true,
+            "children": [
+                {
+                    "name": "location",
+                    "id": 80,
+                    "children": [
+                        {
+                            "name": "upper zone",
+                            "id": 81,
+                            "activatable": true
+                        },
+                        {
+                            "name": "middle zone",
+                            "id": 82,
+                            "activatable": true
+                        },
+                        {
+                            "name": "lower zone",
+                            "id": 83,
+                            "activatable": true
+                        }
+                    ]
+                },
+                {
+                    "name": "side",
+                    "id": 84,
+                    "single-select-from-children": true,
+                    "children": [
+                        {
+                            "name": "left",
+                            "id": 85,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "right",
+                            "id": 86,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "bilateral",
+                            "id": 87,
+                            "single-selectable": true,
+                            "activatable": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "pulmonary edema",
+            "id": 88,
+            "activatable": true,
+            "children": [
+                {
+                    "name": "type",
+                    "id": 91,
+                    "single-select-from-children": true,
+                    "children": [
+                        {
+                            "name": "unspecified",
+                            "id": 92,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "interstitial",
+                            "id": 93,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "alveolar",
+                            "id": 94,
+                            "single-selectable": true,
+                            "activatable": true
+                        },
+                        {
+                            "name": "reexpansion",
+                            "id": 95,
+                            "single-selectable": true,
+                            "activatable": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "heart size",
+            "id": 96,
+            "single-select-from-children": true,
+            "children": [
+                {
+                    "name": "normal",
+                    "id": 97,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "cardiomegaly",
+                    "id": 98,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "enlarged due to projection (a.p. projection misrotation) and/or shallow inspiration",
+                    "id": 99,
+                    "single-selectable": true,
+                    "activatable": true
+                }
+            ]
+        },
+        {
+            "name": "mediastinum width",
+            "id": 100,
+            "single-select-from-children": true,
+            "children": [
+                {
+                    "name": "normal",
+                    "id": 101,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "widened",
+                    "id": 102,
+                    "single-selectable": true,
+                    "activatable": true,
+                    "children": [
+                        {
+                            "name": "side",
+                            "id": 103,
+                            "single-select-from-children": true,
+                            "children": [
+                                {
+                                    "name": "symmetrically widened",
+                                    "id": 104,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                },
+                                {
+                                    "name": "widened to the right",
+                                    "id": 105,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                },
+                                {
+                                    "name": "widened to the left",
+                                    "id": 106,
+                                    "single-selectable": true,
+                                    "activatable": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "mediastinum location",
+            "id": 107,
+            "single-select-from-children": true,
+            "children": [
+                {
+                    "name": "midline",
+                    "id": 108,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "shift to the right",
+                    "id": 109,
+                    "single-selectable": true,
+                    "activatable": true
+                },
+                {
+                    "name": "shift to the left",
+                    "id": 110,
+                    "single-selectable": true,
+                    "activatable": true
+                }
+            ]
+        },
+        {
+            "name": "pneumomediastinum",
+            "id": 111,
+            "activatable": true
+        },
+        {
+            "name": "degenerative bone changes",
+            "id": 114,
+            "activatable": true
+        },
+        {
+            "name": "bone fractures",
+            "id": 117,
+            "activatable": true
+        },
+        {
+            "name": "soft tissue envelope",
+            "id": 120,
+            "children": [
+                {
+                    "name": "subcutaneous emphysema",
+                    "id": 121,
+                    "activatable": true
+                },
+                {
+                    "name": "asymmetric swelling",
+                    "id": 124,
+                    "activatable": true
+                },
+                {
+                    "name": "asymmetric nipple shadow",
+                    "id": 127,
+                    "activatable": true
+                }
+            ]
+        }
+    ]
+}

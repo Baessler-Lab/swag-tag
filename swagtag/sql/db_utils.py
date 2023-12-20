@@ -633,6 +633,53 @@ def read_jsons_to_list_of_dicts(
         pass
 
 
+def check_if_in_table(
+        table_name: str,
+        prim_key: str,
+        ids_to_check: typing.List[str],
+        conn: connection = None,
+        db_conf: typing.Mapping = db_conf,
+        any: bool = False,
+) -> typing.List[dict]:
+    if any:
+        where_condition = sql.SQL('WHERE {prim_key}=ANY({id_list})').format(
+            prim_key=sql.Identifier(prim_key),
+            id_list=sql.Placeholder()
+        )
+    else:
+        where_condition = sql.SQL('WHERE {prim_key}={id_list}').format(
+            prim_key=sql.Identifier(prim_key),
+            id_list=sql.Placeholder()
+        )
+
+    query = sql.SQL('''
+        SELECT EXISTS (
+            SELECT 1
+            FROM {table_name} 
+            {where_stmt}
+        )''').format(
+        table_name=sql.Identifier(table_name),
+        where_stmt=where_condition,
+    )
+
+    # connect to db
+    conn = connect_or_take_connection(db_config=db_conf, conn=conn)
+
+    try:
+        with conn.cursor() as cur:
+            if any:
+                cur.execute(query, [ids_to_check])
+                conn.commit()
+                return cur.fetchone()[0]
+
+            else:
+                execute_batch(cur=cur, sql=query, argslist=[tuple(ids_to_check)], page_size=1000)
+                conn.commit()
+                return cur.fetchall()
+    finally:
+        pass
+
+
 def store_df_to_table(df: pd.DataFrame, if_exists='append', name: str = 'dashboard_table'):
     # connect to db
     url = "postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}".format(**db_conf)

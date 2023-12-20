@@ -1,16 +1,33 @@
-from collections import defaultdict
+import json
+import typing
 
 import pandas as pd
 import streamlit as st
+import yaml
 
-from annotation.io import load_annotations, get_last_user_annotation, get_default_annotation_and_meta
+import config.config as CFG
+from annotation.io import load_annotations, get_last_user_annotation, llm_default_annotation_meta
 from config.config import db_conf, sql_conf
 from config.load_config import load_dash_conf
-from data_load.image_buffer import load_images_for_study
 from data_load.report_load import load_report_for_study
 from sql.db_utils import connect_to_db, read_table_to_df
 from sql.init_db import create_or_check_db_and_tables
 from user.manage import read_user_dicts
+
+# monkey-patch dashboard config
+CONFIG_YAML_NAME = "llm-tag-config.yaml"
+
+CONFIG_YAML_FPATH = CFG.CONFIG_PY_FPATH.with_name(CONFIG_YAML_NAME)
+
+with CONFIG_YAML_FPATH.open("r") as f:
+    LLM_CONFIG_DICT = yaml.safe_load(f)
+
+CFG.DASH_CONF = LLM_CONFIG_DICT['dashboard']
+
+
+def update_all():
+    update_annotation(inplace=True)
+    update_report(inplace=True)
 
 
 def update_case(case_no: int):
@@ -21,17 +38,6 @@ def update_case(case_no: int):
     st.session_state['cur_accession_number'] = st.session_state['map_study_instance_uid_accession_number'].iloc[
         st.session_state['case_no']
     ].loc['AccessionNumber']
-
-
-def update_images(inplace: bool = True):
-    images = load_images_for_study(
-        StudyInstanceUID=st.session_state['cur_study_instance_uid'],
-        df=st.session_state['image_uris_dataframe']
-    )
-    if inplace:
-        st.session_state['images'] = images
-    else:
-        return images
 
 
 def update_report(inplace: bool = True):
@@ -69,7 +75,8 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
     if len(annotations) == 0:
         # no stored annotation
         # set defaults
-        annotation, annotation_meta = get_default_annotation_and_meta(st.session_state.dash_conf)
+        annotation = llm_default_annotation_meta(st.session_state.template)
+        annotation_meta = {}
     else:
         if annotation_id is not None:
             annotation = annotations[annotation_id][sql_conf['result_table']['json_col']]
@@ -87,42 +94,41 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
             # last_annotation_id = next(reversed(user_annotations_meta.keys()))
             # annotation = annotations[annotation_id][sql_conf['result_table']['json_col']]
 
-    # identify non-zero tags (backward-compatibility):
-    active_tags = []
-    for tag in annotation.keys():
-        for attribute in st.session_state.dash_conf['annotation_attributes']:
+    # # identify non-zero tags (backward-compatibility):
+    # active_tags = []
+    # for tag in annotation.keys():
+    #     for attribute in st.session_state.dash_conf['annotation_attributes']:
+    #
+    #         try:
+    #             att = annotation[tag][attribute]
+    #             if attribute == 'probability':
+    #                 if att > 0:
+    #                     active_tags.append(tag)
+    #             # type conversion to new integer based jsons
+    #             non_def_val = annotation[tag][attribute]
+    #             annotation[tag][attribute] = [int(val) for val in non_def_val] \
+    #                 if isinstance(non_def_val, list) else int(non_def_val)
+    #         except KeyError:
+    #             # backward compatibility for empty annotation_tags
+    #             # annotation[tag] = {
+    #             #     'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
+    #             #     'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
+    #             #     'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
+    #             #     'side': int(st.session_state.dash_conf[f'default_annotation_side']),
+    #             #     'left_height': st.session_state.dash_conf[f'default_annotation_height'],
+    #             #     'right_height': st.session_state.dash_conf[f'default_annotation_height'],
+    #             # }
+    #             def_val = st.session_state.dash_conf[f'default_annotation_{attribute}']
+    #             annotation[tag][attribute] = [int(val) for val in def_val] \
+    #                 if isinstance(def_val, list) else int(def_val)
+    #         # pass
+    #
+    #     # fill missing tag attributes
+    #
+    # annotation['tags'] = active_tags
 
-            try:
-                att = annotation[tag][attribute]
-                if attribute == 'probability':
-                    if att > 0:
-                        active_tags.append(tag)
-                # type conversion to new integer based jsons
-                non_def_val = annotation[tag][attribute]
-                annotation[tag][attribute] = [int(val) for val in non_def_val] \
-                    if isinstance(non_def_val, list) else int(non_def_val)
-            except KeyError:
-                # backward compatibility for empty annotation_tags
-                # annotation[tag] = {
-                #     'probability': int(st.session_state.dash_conf[f'default_annotation_probability']),
-                #     'severity': int(st.session_state.dash_conf[f'default_annotation_severity']),
-                #     'urgency': int(st.session_state.dash_conf[f'default_annotation_urgency']),
-                #     'side': int(st.session_state.dash_conf[f'default_annotation_side']),
-                #     'left_height': st.session_state.dash_conf[f'default_annotation_height'],
-                #     'right_height': st.session_state.dash_conf[f'default_annotation_height'],
-                # }
-                def_val = st.session_state.dash_conf[f'default_annotation_{attribute}']
-                annotation[tag][attribute] = [int(val) for val in def_val] \
-                    if isinstance(def_val, list) else int(def_val)
-            # pass
-
-        # fill missing tag attributes
-
-    annotation['tags'] = active_tags
-
-    # reset widget 'tags'
-    if f"tags_{st.session_state['cur_study_instance_uid']}" in st.session_state:
-        del st.session_state[f"tags_{st.session_state['cur_study_instance_uid']}"]
+    # reset annotation_widgets
+    reset_annotation_widgets(node=st.session_state.template)
 
     if inplace:
         st.session_state['current_annotations'] = annotations
@@ -131,6 +137,15 @@ def update_annotation(inplace: bool = True, annotation_id: str = None) -> None |
         st.session_state['current_annotation_meta'] = annotation_meta
     else:
         return annotation
+
+
+def reset_annotation_widgets(node: typing.Dict[str, typing.Any]):
+    if 'children' in node:
+        for child in node['children']:
+            reset_annotation_widgets(child)
+
+    if f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}" in st.session_state:
+        del st.session_state[f"annotation_{node['id']}_{st.session_state['cur_study_instance_uid']}"]
 
 
 def update_users(inplace: bool = True):
@@ -161,6 +176,25 @@ def update_user(user_name: str = None, user_id: int | str = None, inplace: bool 
         return cur_user
 
 
+def update_template(template_id: str = None, inplace: bool = False):
+    if template_id is None:
+        template_file = CONFIG_YAML_FPATH.with_name('templates') / CFG.DASH_CONF['default_template']
+
+    else:
+        # TODO: Store templates as JSON into postgres and load from there
+        raise NotImplementedError(f'''Currently the template is defined in {CONFIG_YAML_NAME}
+        Lookup 'dashboard' -> 'default_template'
+        ''')
+
+    with template_file.open(mode='r') as f:
+        template = json.load(f)
+
+    if inplace:
+        st.session_state['template'] = template
+    else:
+        return template
+
+
 def update_config():
     if st.session_state.latest:
         config_id = None
@@ -172,9 +206,9 @@ def update_config():
         default=False,
     )
     update_case(st.session_state['dash_conf']['default_case_no'])
-    update_images(inplace=True)
     update_report(inplace=True)
     update_annotation(inplace=True)
+    update_template(inplace=True)
 
 
 @st.cache_data
@@ -204,7 +238,9 @@ def lookup_accession_number(df: pd.DataFrame, study_instance_uid: str) -> str:
     return acc_no.squeeze()
 
 
-def init_session_states():
+def init_session_states(page: str):
+    if not 'page' in st.session_state:
+        st.session_state['page'] = page
     # init database
     if 'table_inited' not in st.session_state:
         st.session_state['table_inited'] = True
@@ -233,6 +269,10 @@ def init_session_states():
     if 'current_user' not in st.session_state:
         update_user(user_name=None, user_id=None, inplace=True)
 
+    # init template
+    if 'template' not in st.session_state:
+        update_template(inplace=True)
+
     # load cases
     if 'map_study_instance_uid_accession_number' not in st.session_state:
         st.session_state['map_study_instance_uid_accession_number'] = \
@@ -245,17 +285,17 @@ def init_session_states():
         st.session_state['case_no'] = st.session_state.dash_conf['default_case_no']
     update_case(st.session_state['case_no'])
 
-    # load images into case iterator
-    if 'images' not in st.session_state:
-        st.session_state['images'] = update_images(inplace=False)
+    # # load images into case iterator
+    # if 'images' not in st.session_state:
+    #     st.session_state['images'] = update_images(inplace=False)
 
-    # init slice_no
-    if 'slice_no' not in st.session_state:
-        st.session_state['slice_no'] = 0
+    # # init slice_no
+    # if 'slice_no' not in st.session_state:
+    #     st.session_state['slice_no'] = 0
 
-    # init windowing for images
-    if 'window_borders' not in st.session_state:
-        st.session_state['window_borders'] = st.session_state.dash_conf['window_default_range']
+    # # init windowing for images
+    # if 'window_borders' not in st.session_state:
+    #     st.session_state['window_borders'] = st.session_state.dash_conf['window_default_range']
 
     # load reports into case iterator
     if 'report' not in st.session_state:

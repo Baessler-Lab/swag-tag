@@ -1,8 +1,13 @@
 import streamlit as st
 
 from config.load_config import store_configuration
-from .states import update_case, update_images, update_report, update_annotation
-
+match st.session_state['page']:
+    case 'llm':
+        from .states_llm import update_case, update_all
+    case 'swag-tag':
+        from .states_swag_tag import update_case, update_all
+    case _:
+        raise ValueError("'page' needs to be defined in st.session_state")
 
 def change_case_prev():
     cur_case_no = st.session_state['case_no']
@@ -35,6 +40,4 @@ def store_conf_submit(**kwargs):
 
 def select_case(case_no):
     update_case(case_no=case_no)
-    update_images(inplace=True)
-    update_report(inplace=True)
-    update_annotation(inplace=True)
+    update_all()
