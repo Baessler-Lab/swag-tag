@@ -2,24 +2,28 @@
 
 Swag-Tag is a web application built using Streamlit that enables efficient annotation of medical images
 and reports via tagging. The reports and scans as well as the added tags are all saved in a postgres database.
+We add a prefill option that uses `Llama-2-70B` (4bit/8bit quantization) to prefill the given template. 
 
 ## Features
 
 Current features are:
 
 - Displaying a report-scan combination from the database
-    - If multiple scans are present, they are displayed vertically (below each other)
+    - If multiple scans are present, they are displayed in tabs
     - Reports are displayed divided into several categories like "Examination" and "Findings"
+    - The user can select prefilled annotations (by an LLM) or 
+- Applying prefilled LL
 - Setting min and max values for windowing X-Ray DICOMs
 - Moving between slices along the z-axis for 3D-scans (e.g. CT)
-- Adding tags to the current case
-    - Several pathologies and findings with finer specifications are currently available
-    - Additionally, severity for action can be added as a tag
-    - Side of an annotation and a multiple heights (corresponding to upper, middle, and lower field of the lung
+- Templates can be defined using `JSON` files.
+    - The template allows nested structures with one-of-many and multi-select children nodes
 - Moving between dataset cases and specifying a case to jump directly to it
 - Previous annotations are loaded directly into the case.
 - loading and saving user configurations
-
+- Templates can be defined using `JSON` files.
+    - The template allows nested structures with one-of-many and multi-select children nodes
+    - In future we will provide a GUI to build the templates
+ - For planned future features and requests please have a look at the `issues` section!
 ## Installation
 
 Follow this step-by-step guide to install the project on your local system. We firmly recommend using conda on Linux
