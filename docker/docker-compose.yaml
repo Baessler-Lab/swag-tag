@@ -19,7 +19,7 @@ services:
       - deploy-network
 #      - hostnet
     ports:
-      - "8510:8510"
+      - "8514:8514"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
