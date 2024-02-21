@@ -1,11 +1,8 @@
 import datetime
-import re
 import typing
 from collections import defaultdict
-from pathlib import Path
 import logging
 
-import requests
 from tqdm import tqdm
 
 import config.config
@@ -13,119 +10,9 @@ from annotation.io import save_annotation
 from config.config import path_conf, sql_conf, db_conf
 from sql.db_utils import insert_into_db, connect_to_db, check_if_in_table
 from sql.init_db import create_or_check_db_and_tables
+from st_utils.st_annotation import parse_txt_reports, structurize_report_llm
 
 log = logging.getLogger(__name__)
-
-
-def validate_template(template_json):
-    id_set = set()
-
-    def check_unique_ids(node, id_set):
-        if 'id' in node:
-            assert node['id'] not in id_set, f"Duplicate ID found: {node['id']}"
-            id_set.add(node['id'])
-        if 'children' in node:
-            for child in node['children']:
-                check_unique_ids(child, id_set)
-
-    check_unique_ids(template_json, id_set)
-
-
-binary_activation_map = {
-    "yes": True,
-    "no": False,
-}
-
-
-def postprocess_llm_to_flat(node: dict, activation_dict, flat_report=None, activated_by_parent=False):
-    if flat_report is None:
-        flat_report = {}
-
-    activation_id = f"answer_{node['id']}"
-
-    # First part - get activation status of the node
-    activated = False  # default value
-    if "activatable" in node and node["activatable"]:
-
-        if "single-selectable" in node and node["single-selectable"]:
-            activated = activated_by_parent
-        else:
-            try:
-                activated = binary_activation_map[activation_dict[activation_id]]
-            except KeyError:
-                raise ValueError(f"Unknown value in activation dict: {activation_dict[activation_id]}")
-
-        # Update the flat report
-        flat_report[str(node['id'])] = {'name': node['name'], 'activated': activated}
-
-    # Second part - parse children
-    if "single-select-from-children" in node and node["single-select-from-children"]:
-        activated_child_name = activation_dict.get(activation_id)
-        for child in node["children"]:
-            child_activated = (child["name"] == activated_child_name)
-            postprocess_llm_to_flat(child, activation_dict, flat_report=flat_report,
-                                    activated_by_parent=child_activated)
-
-    elif (not node.get('activatable', False)) or activated:
-        if 'children' in node:
-            for child in node["children"]:
-                postprocess_llm_to_flat(child, activation_dict, flat_report=flat_report, activated_by_parent=False)
-
-    return flat_report
-
-
-def structurize_report(report: str, template: typing.Mapping, endpoint: str):
-    response = requests.post(f"http://{endpoint}/predict", json={"report": report, "template": template})
-    if not response.ok:
-        log.error(response.text)
-    result = response.json()
-
-    return result
-
-
-def parse_txt_reports(
-        fpath_report: Path,
-) -> typing.Dict:
-    report_content = defaultdict(str)
-    with fpath_report.open('r') as f:
-        s = f.read()
-        s: str
-        matches = re.finditer(
-            r'.*?(?P<keyword>[A-Z]+):(?P<item>.*?(?=[A-Z]+:|$))',
-            s,
-            flags=re.DOTALL
-        )
-        for match in matches:
-            if match:
-                report_content[match.group('keyword').lower()] = match.group('item')
-
-    return report_content
-
-
-def structurize_report_llm(report_content: typing.Mapping[str, str]):
-    # join report_content
-    findings = report_content.get('findings', "").replace(r'\n', '')
-    impression = report_content.get("impression", "").replace(r"\n", '')
-
-    findings_impression = f"""
-    FINDINGS: \n
-    {findings} \n
-    IMPRESSION: \n
-    {impression} \n
-    """
-
-    result = structurize_report(
-        report=findings_impression,
-        template=config.config.DEFAULT_TEMPLATE,
-        endpoint=config.config.ENDPOINT
-    )
-    llm_annotation = postprocess_llm_to_flat(
-        node=config.config.DEFAULT_TEMPLATE,
-        activation_dict=result.get('activation_dict', {}),
-        activated_by_parent=False,
-                            )
-    # llm_annotation = result.get('result', {})
-    return llm_annotation
 
 
 def scrape_filetree_and_save_to_database(use_llm: bool = False):
