@@ -3,7 +3,7 @@ db:
   port: 5432
   user: postgres
   password: SmilelikeyouMeanIt
-  dbname: swag
+  dbname: swag-prospective
 
 local_fs:
   host: localhost

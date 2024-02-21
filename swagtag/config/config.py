@@ -7,6 +7,7 @@ import yaml
 
 
 class OrthancConfig(object):
+
     def __init__(
             self,
             port: int = 8042,
@@ -129,7 +130,8 @@ MODEL_CONFIG = {
         "device_map": "auto",
     }
 }
-
-DEFAULT_LLM = "llama-2-70b-8bit"
-
-ENDPOINT = "localhost:5000"
+# LLM TAG SERVER config
+LLM_TAG_SERVER_CONF = DASHBOARD_CONF["llm-tag-server"]
+DEFAULT_LLM = LLM_TAG_SERVER_CONF.get("default-llm", "llama-2-70b-8bit")
+PORT = LLM_TAG_SERVER_CONF.get("port", 5000)
+ENDPOINT = f"{LLM_TAG_SERVER_CONF.get('endpoint', 'localhost')}:{PORT}"

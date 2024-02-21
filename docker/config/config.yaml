@@ -22,68 +22,11 @@ dashboard:
     - 'technique'
     - 'findings'
     - 'impression'
-  annotation_tags:
-    - 'pneumonia/infiltrate'
-    - 'pneumothorax'
-    - 'fracture'
-    - 'congestion/edema'
-    - 'pleural efusion'
-    - 'cardiomegaly'
-    - 'atelectasis'
-    - 'mass'
-    - 'abscess'
-    - 'free air'
-    - 'misplaced/defect foreign body'
-    - 'aspiration'
-    - 'hiatal hernia'
-    - 'fibrosis'
-    - 'emphysema'
-  annotation_attributes:
-    - 'probability'
-    - 'severity'
-    - 'urgency'
-    - 'side'
-    - 'left_height'
-    - 'right_height'
-  annotation_probability:
-    {
-      0: 'absent',
-      1: 'possible',
-      2: 'highly likely/certain',
-    }
-  annotation_severity:
-    {
-      0: 'mild',
-      1: 'moderate',
-      2: 'severe',
-    }
-  annotation_urgency:
-    {
-      0: 'not urgent',
-      1: 'urgent response (~1 day)',
-      2: 'immediate response',
-    }
-  annotation_side:
-    {
-      0: 'irrelevant',
-      1: 'left',
-      2: 'right',
-      3: 'both',
-    }
-  annotation_height:
-    {
-      1: 'lower',
-      2: 'middle',
-      3: 'upper',
-    }
-  default_tags: [ ]
-  default_annotation_probability: 0
-  default_annotation_severity: 0
-  default_annotation_urgency: 0
-  default_annotation_side: 0
-  default_annotation_left_height: [ ]
-  default_annotation_right_height: [ ]
 
+llm-tag-server:
+  endpoint: llm-tag-server
+  port: 5000
+  default_llm: "llama-2-70b-4bit"
 
 sql:
   study_table:

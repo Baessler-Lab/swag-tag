@@ -84,6 +84,10 @@ dashboard:
   default_annotation_left_height: [ ]
   default_annotation_right_height: [ ]
 
+llm-tag-server:
+  endpoint: localhost
+  port: 5003
+  default_llm: "llama-2-70b-4bit"
 
 sql:
   study_table:

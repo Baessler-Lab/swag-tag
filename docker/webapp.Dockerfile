@@ -5,7 +5,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
 #    build-essential \
-#    curl \
+   curl \
 #    software-properties-common \
     git \
     && rm -rf /var/lib/apt/lists/*
@@ -22,12 +22,12 @@ RUN pip install -e /dicom-base
 #RUN pip install -e /llm-tag
 
 ENV HOST=0.0.0.0
-ENV LISTEN_PORT 8510
-EXPOSE 8510
+#ENV LISTEN_PORT 8510
+#EXPOSE 8510
 #ENV PYTHONPATH "${PYTHONPATH}:/app"
 ENV PYTHONPATH "${PYTHONPATH}:/app:/app/swagtag"
 
-HEALTHCHECK CMD curl --fail http://localhost:8510/_stcore/health
+HEALTHCHECK CMD curl --fail http://localhost:8510/web/_stcore/health
 
 ENTRYPOINT ["streamlit", \
             "run", \
