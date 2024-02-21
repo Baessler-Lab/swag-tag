@@ -22,8 +22,8 @@ RUN pip install -e /dicom-base
 #RUN pip install -e /llm-tag
 
 ENV HOST=0.0.0.0
-ENV LISTEN_PORT 8514
-EXPOSE $LISTEN_PORT
+ENV LISTEN_PORT 8510
+EXPOSE 8510
 #ENV PYTHONPATH "${PYTHONPATH}:/app"
 ENV PYTHONPATH "${PYTHONPATH}:/app:/app/swagtag"
 
@@ -32,9 +32,9 @@ HEALTHCHECK CMD curl --fail http://localhost:8510/_stcore/health
 ENTRYPOINT ["streamlit", \
             "run", \
             "swagtag/main.py", \
-            "--server.port=$LISTEN_PORT", \
+            "--server.port=8510", \
             "--server.fileWatcherType=none", \
             "--server.enableCORS=false", \
             "--server.enableXsrfProtection=false", \
             "--server.enableWebsocketCompression=false",\
-            "--server.baseUrlPath=/"]
+            "--server.baseUrlPath=/web"]

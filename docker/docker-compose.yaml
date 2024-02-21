@@ -1,7 +1,7 @@
 version: '3.5'
 
 services:
-  swagtag:
+  swagtag-showcase:
     build:
       context: ..
       dockerfile: docker/webapp.Dockerfile
@@ -19,7 +19,7 @@ services:
       - deploy-network
 #      - hostnet
     ports:
-      - "8514:8514"
+      - "8514:8510"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
