@@ -10,7 +10,7 @@ from annotation.io import save_annotation
 from config.config import path_conf, sql_conf, db_conf
 from sql.db_utils import insert_into_db, connect_to_db, check_if_in_table
 from sql.init_db import create_or_check_db_and_tables
-from st_utils.st_annotation import parse_txt_reports, structurize_report_llm
+from st_utils.st_annotation import parse_txt_reports, structurize_separate_findings_and_impression
 
 log = logging.getLogger(__name__)
 
@@ -104,8 +104,9 @@ def scrape_filetree_and_save_to_database(use_llm: bool = False):
 
                 conn.commit()
             if use_llm and not in_table:
+                structured_report, json_report = structurize_separate_findings_and_impression(report_content)
                 save_annotation(
-                    annotation=structurize_report_llm(report_content),
+                    annotation=structured_report,
                     study_instance_uid=study_instance_uid,
                     accession_number=accession_number,
                     conn=conn,

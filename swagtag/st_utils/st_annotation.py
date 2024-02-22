@@ -1,4 +1,4 @@
-import json
+import logging
 import re
 import typing
 from collections import defaultdict
@@ -11,6 +11,18 @@ import streamlit as st
 import config.config
 from annotation.io import save_annotation, get_last_user_annotation, lookup_label_from_annotation_meta
 from st_utils.states_swag_tag import update_annotation
+
+log = logging.getLogger(__name__)
+
+binary_activation_map = {
+    "yes": True,
+    "no": False,
+}
+
+inverse_binary_activation_map = {
+    True: "yes",
+    False: "no",
+}
 
 
 def handle_single_selection(node, report, unique_key, disabled):
@@ -65,7 +77,7 @@ def render_report(template_node, report=None, level=-1, state=None, disabled=Fal
         else:
             activated = False
     else:
-        cols = st.columns([1] * level + [4])
+        cols = st.columns([1] * level + [6])
 
         with cols[-1]:
             if "single-select-from-children" in node and node["single-select-from-children"]:
@@ -104,48 +116,168 @@ def render_report(template_node, report=None, level=-1, state=None, disabled=Fal
     return state
 
 
-def validate_template(template_json):
-    id_set = set()
+def handle_single_selection_yaml(node, flat_report, unique_key, disabled):
+    option_ids = [child["id"] for child in node["children"]]
+    option_names = [child["name"] for child in node["children"]]
+    assert len(option_names) == len(option_ids)
+    selected_ids = [id_ for id_ in option_ids if flat_report.get(str(id_), {}).get('activated', False)]
+    assert len(selected_ids) <= 1, "Maximally one child can be selected"
+    if not selected_ids or disabled:
+        selected_name = "NOT SPECIFIED"
+        selected_child = None
+    else:
+        selected_id = selected_ids[0]
+        default_index = option_ids.index(selected_id)
+        selected_name = option_names[default_index]
+        selected_child = node["children"][default_index]
+    return selected_name, selected_child
 
-    def check_unique_ids(node, id_set):
-        if 'id' in node:
-            assert node['id'] not in id_set, f"Duplicate ID found: {node['id']}"
-            id_set.add(node['id'])
-        if 'children' in node:
-            for child in node['children']:
-                check_unique_ids(child, id_set)
 
-    check_unique_ids(template_json, id_set)
+def render_report_nested_dict(
+        template_node: typing.Dict[str, typing.Any],
+        report: typing.Mapping[str, typing.Any] = None,
+        level: int = -1,
+        disabled=False,
+        hide_inactivated_downstream_nodes: bool = False,
+) -> typing.Dict[str, typing.Any]:
+    node_id = str(template_node['id'])
+    # template_node = template_node.copy()
+
+    if report is None:
+        report = {}
+
+    children = template_node.get('children', [])
+    if level == -1:
+        return {
+            template_node["name"]: {
+                child["name"]:
+                    render_report_nested_dict(
+                        child,
+                        report,
+                        level=level + 1,
+                        disabled=False,
+                    )
+                for child in children
+                # }
+            }
+        }
+
+    if template_node.get('single-selectable', False) or ('activatable' in template_node and template_node['activatable']):
+        activated = report.get(node_id, {}).get("activated", False)
+        if not template_node.get("activatable", False):
+            child_disabled = disabled or False
+        else:
+            child_disabled = disabled or not activated
+        if len(children) == 0:
+            if template_node.get('single-selectable', False):
+                return template_node["name"]
+            else:
+                return inverse_binary_activation_map[
+                    activated]  # {node["name"]: inverse_binary_activation_map[activated]}
+        elif len(children) == 1:
+            if template_node.get('single-selectable', False):
+                return {
+                     children[0]["name"]:
+                render_report_nested_dict(
+                    children[0],
+                    report,
+                    level=level + 1,
+                    disabled=child_disabled
+                )
+                }
+            else:
+                if activated:
+                     return {
+                         children[0]["name"]:
+                    render_report_nested_dict(
+                        children[0],
+                        report,
+                        level=level + 1,
+                        disabled=child_disabled
+                    )
+                    }
+                else:
+                    # return {children[0]["name"]: inverse_binary_activation_map[activated]}
+                    return inverse_binary_activation_map[
+                        activated]
+        else:
+            if template_node.get('single-selectable', False):
+                return {
+                    # node["name"]: {
+                    child["name"]:
+                        render_report_nested_dict(
+                            child,
+                            report,
+                            level=level + 1,
+                            disabled=child_disabled
+                        )
+                    for child in children
+                    # }
+                }
+            else:
+                if activated:
+                    return {
+                        # node["name"]: {
+                        child["name"]:
+                            render_report_nested_dict(
+                                child,
+                                report,
+                                level=level + 1,
+                                disabled=child_disabled
+                            )
+                        for child in children
+                        # }
+                    }
+                else:
+                    # return {children[0]["name"]: inverse_binary_activation_map[activated]}
+                    return inverse_binary_activation_map[
+                        activated]
 
 
-@st.cache_resource(ttl=10000)
-def load_templates(
-        template_dir,
-) -> typing.Tuple[typing.List[dict], typing.List[str]]:
-    template_fpaths = [f for f in Path(template_dir).glob("*.json")]
-    template_options = [f.stem for f in template_fpaths]
-    templates = []
-    # try:
-    #     template_options.remove("default_template"),
-    # template_options.insert(0, "default_template")
-    for fpath in template_fpaths:
-        with fpath.open("r") as f:
-            templates.append(json.load(f))
+    elif "single-select-from-children" in template_node and template_node["single-select-from-children"]:
+        selected_name, selected_child = handle_single_selection_yaml(template_node, report, node_id, disabled=disabled)
+        # single_selectable from children is never activatable
+        child_disabled = disabled or False
+        if selected_child is not None:
+            return {
+                selected_child["name"]:
+                    render_report_nested_dict(
+                        selected_child,
+                        report,
+                        level=level + 1,
+                        disabled=child_disabled
+                    )
+            }
+        else:  # not specified in report
+            return selected_name
 
-    return templates, template_options
+    else:  # neither single-selectable nor activatable e.g. headlines
+        assert len(children) > 0
+        child_disabled = disabled or False
+        if len(children) == 1:
 
-    # if 'template_loaded' not in st.session_state:
-    #     st.session_state.template_loaded = False
-    #
-    # if not st.session_state.template_loaded:
-    #     template_name = st.selectbox("Template", options=template_options, key=widget_key)
-    #     if st.button("Load template", use_container_width=True, key=f"{widget_key}_button"):
-    #         st.session_state.template_loaded = True
-    #
-    #         return template
-    # else:
-    #     st.write("Template already loaded.")
-    #     return None
+            return {
+                children[0]["name"]:
+                    render_report_nested_dict(
+                        children[0],
+                        report,
+                        level=level + 1,
+                        disabled=child_disabled
+                    )
+            }
+        else:
+            return {
+                # node["name"]: {
+                child["name"]:
+                    render_report_nested_dict(
+                        child,
+                        report,
+                        level=level + 1,
+                        disabled=child_disabled
+                    )
+                for child in children
+            }
+            # }
 
 
 def st_annotation_select():
@@ -202,10 +334,6 @@ def st_annotation_select():
 
 # noinspection DuplicatedCode
 def st_annotation_box():
-    st.markdown('## Annotation ##')
-
-    # select annotations
-    st_annotation_select()
     st.session_state['current_report'] = render_report(
         template_node=st.session_state["template"],
         report=st.session_state["current_annotation"]
@@ -233,7 +361,9 @@ def store_annotation_callback():
     st.success('Successfully stored your annotation.')
 
 
-def postprocess_llm_to_flat(node: dict, activation_dict, flat_report=None, activated_by_parent=False):
+def postprocess_llm_to_flat(
+        node: dict, activation_dict, flat_report=None, activated_by_parent=False
+) -> typing.Dict[str, typing.Any]:
     if flat_report is None:
         flat_report = {}
 
@@ -298,7 +428,9 @@ def parse_txt_reports(
     return report_content
 
 
-def structurize_report_llm(report_content: typing.Mapping[str, str]):
+def structurize_separate_findings_and_impression(
+        report_content: typing.Mapping[str, str]
+) -> typing.Dict[str, typing.Any]:
     # join report_content
     findings = report_content.get('findings', "").replace(r'\n', '')
     impression = report_content.get("impression", "").replace(r"\n", '')
@@ -310,15 +442,29 @@ def structurize_report_llm(report_content: typing.Mapping[str, str]):
     {impression} \n
     """
 
-    result = structurize_report(
+    structured_report, _ = structurize_report_llm(
         report=findings_impression,
-        template=config.config.DEFAULT_TEMPLATE,
+        template=config.config.DEFAULT_TEMPLATE
+    )
+    return structured_report
+
+
+def structurize_report_llm(
+        report: str,
+        template: typing.Mapping[str, str],
+) -> typing.Dict[str, typing.Any]:
+    result = structurize_report(
+        report=report,
+        template=template,
         endpoint=config.config.ENDPOINT
     )
+    activation_dict = result.get('activation_dict', {})
     llm_annotation = postprocess_llm_to_flat(
-        node=config.config.DEFAULT_TEMPLATE,
-        activation_dict=result.get('activation_dict', {}),
+        node=template,
+        activation_dict=activation_dict,
         activated_by_parent=False,
-                            )
+    )
+
+
     # llm_annotation = result.get('result', {})
     return llm_annotation

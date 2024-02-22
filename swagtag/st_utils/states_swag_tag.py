@@ -3,7 +3,8 @@ from collections import defaultdict
 import pandas as pd
 import streamlit as st
 
-import st_utils.st_annotation
+import st_utils
+import st_utils.st_template
 import swagtag.config.config
 from annotation.io import load_annotations, get_last_user_annotation, get_default_annotation_and_meta
 from config.config import db_conf, sql_conf
@@ -259,8 +260,7 @@ def init_session_states(page: str):
         st.session_state['report'] = update_report(inplace=False)
 
     if 'templates' not in st.session_state:
-        st.session_state["templates"], st.session_state["template_options"] = st_utils.\
-            st_annotation.load_templates(swagtag.config.config.TEMPLATE_DIR)
+        st.session_state["templates"], st.session_state["template_options"] = st_utils.st_template.load_templates(swagtag.config.config.TEMPLATE_DIR)
         print([type(item) for item in st.session_state["templates"]])
         assert swagtag.config.config.DEFAULT_TEMPLATE_NAME in st.session_state["template_options"]
         st.session_state["template"] = st.session_state["templates"][
