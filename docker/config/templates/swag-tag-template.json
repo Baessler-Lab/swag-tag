@@ -1,0 +1,867 @@
+{
+  "name": "X-ray chest template",
+  "id": 0,
+  "children": [
+    {
+      "name": "diagnostic quality",
+      "id": 1,
+      "activatable": false,
+      "children": [
+        {
+          "name": "limited diagnostic quality",
+          "id": 2,
+          "single-selectable": false,
+          "activatable": true,
+          "children": [
+            {
+              "name": "due to",
+              "id": 3,
+              "single-select-from-children": false,
+              "children": [
+                {
+                  "name": "incomplete depiction",
+                  "id": 4,
+                  "single-selectable": false,
+                  "activatable": true
+                },
+                {
+                  "name": "insufficient lung expansion",
+                  "id": 5,
+                  "single-selectable": false,
+                  "activatable": true
+                },
+                {
+                  "name": "incorrect rotation or angulation",
+                  "id": 6,
+                  "single-selectable": false,
+                  "activatable": true
+                },
+                {
+                  "name": "other reason",
+                  "id": 7,
+                  "single-selectable": false,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "foreign material",
+      "id": 8,
+      "children": [
+        {
+          "name": "nasogastric (Dobhoff) tube",
+          "id": 9,
+          "activatable": true,
+          "children": [
+            {
+              "name": "misplaced",
+              "id": 10,
+              "activatable": true
+            }
+          ]
+        },
+        {
+          "name": "endotracheal tube (ETT)/tracheal cannula",
+          "id": 11,
+          "activatable": true,
+          "children": [
+            {
+              "name": "misplaced",
+              "id": 12,
+              "activatable": true
+            }
+          ]
+        },
+        {
+          "name": "chest tube",
+          "id": 13,
+          "activatable": true,
+          "children": [
+            {
+              "name": "side",
+              "id": 14,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "not specified in the report",
+                  "id": 15,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "left",
+                  "id": 16,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "right",
+                  "id": 17,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "bilateral",
+                  "id": 18,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            },
+            {
+              "name": "misplaced",
+              "id": 19,
+              "activatable": true
+            }
+          ]
+        },
+        {
+          "name": "central venous catheter",
+          "id": 20,
+          "activatable": true,
+          "children": [
+            {
+              "name": "misplaced",
+              "id": 21,
+              "activatable": true
+            }
+          ]
+        },
+        {
+          "name": "pacemaker probes/wires",
+          "id": 22,
+          "activatable": true
+        },
+        {
+          "name": "sternotomy wires",
+          "id": 23,
+          "activatable": true
+        },
+        {
+          "name": "valve replacement",
+          "id": 24,
+          "activatable": true
+        },
+        {
+          "name": "osteosynthesis material",
+          "id": 25,
+          "activatable": true
+        }
+      ]
+    },
+    {
+      "name": "Diaphragm and upper abdomen",
+      "id": 26,
+      "activatable": false,
+      "children": [
+        {
+          "name": "diaphragm",
+          "id": 27,
+          "activatable": false,
+          "children": [
+            {
+              "name": "elevated",
+              "id": 28,
+              "activatable": true,
+              "children": [
+                {
+                  "name": "side",
+                  "id": 29,
+                  "single-select-from-children": true,
+                  "children": [
+                    {
+                      "name": "left",
+                      "id": 30,
+                      "single-selectable": true,
+                      "activatable": true
+                    },
+                    {
+                      "name": "right",
+                      "id": 31,
+                      "single-selectable": true,
+                      "activatable": true
+                    },
+                    {
+                      "name": "bilateral",
+                      "id": 32,
+                      "single-selectable": true,
+                      "activatable": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "flattened",
+              "id": 33,
+              "activatable": true,
+              "children": [
+                {
+                  "name": "side",
+                  "id": 34,
+                  "single-select-from-children": true,
+                  "children": [
+                    {
+                      "name": "left",
+                      "id": 35,
+                      "single-selectable": true,
+                      "activatable": true
+                    },
+                    {
+                      "name": "right",
+                      "id": 36,
+                      "single-selectable": true,
+                      "activatable": true
+                    },
+                    {
+                      "name": "bilateral",
+                      "id": 37,
+                      "single-selectable": true,
+                      "activatable": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "free abdominal air / pneumoperitoneum",
+          "id": 38,
+          "activatable": true
+        },
+        {
+          "name": "hiatal hernia",
+          "id": 39,
+          "activatable": true
+        }
+      ]
+    },
+    {
+      "name": "Pleural cavity",
+      "id": 40,
+      "activatable": false,
+      "children": [
+        {
+          "name": "pneumothorax",
+          "id": 41,
+          "activatable": true,
+          "children": [
+            {
+              "name": "location",
+              "id": 42,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "not specified in the report",
+                  "id": 43,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "apical",
+                  "id": 44,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "basal",
+                  "id": 45,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            },
+            {
+              "name": "side",
+              "id": 46,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "left",
+                  "id": 47,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "right",
+                  "id": 48,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "bilateral",
+                  "id": 49,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            },
+            {
+              "name": "tension pneumothorax",
+              "id": 50,
+              "activatable": true
+            }
+          ]
+        },
+        {
+          "name": "pleural effusion (including hemothorax)",
+          "id": 51,
+          "activatable": true,
+          "children": [
+            {
+              "name": "size",
+              "id": 52,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "not specified in the report",
+                  "id": 53,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "small",
+                  "id": 54,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "moderate",
+                  "id": 55,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "large",
+                  "id": 56,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            },
+            {
+              "name": "side",
+              "id": 57,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "left",
+                  "id": 58,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "right",
+                  "id": 59,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "bilateral",
+                  "id": 60,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lungs",
+      "id": 61,
+      "activatable": false,
+      "children": [
+        {
+          "name": "atelectasis",
+          "id": 62,
+          "activatable": true,
+          "children": [
+            {
+              "name": "type",
+              "id": 63,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "not specified in the report",
+                  "id": 64,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "compressive atelectasis",
+                  "id": 65,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "subsegmental atelectasis",
+                  "id": 66,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "linear (platelike) atelectasis",
+                  "id": 67,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "round atelectasis",
+                  "id": 68,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "obstructive atelectasis",
+                  "id": 69,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            },
+            {
+              "name": "locations in the lung",
+              "id": 70,
+              "children": [
+                {
+                  "name": "right lower zone (right base)",
+                  "id": 71,
+                  "activatable": true
+                },
+                {
+                  "name": "right middle zone",
+                  "id": 72,
+                  "activatable": true
+                },
+                {
+                  "name": "right upper zone (right apical)",
+                  "id": 73,
+                  "activatable": true
+                },
+                {
+                  "name": "left lower zone (left base)",
+                  "id": 74,
+                  "activatable": true
+                },
+                {
+                  "name": "left middle zone",
+                  "id": 75,
+                  "activatable": true
+                },
+                {
+                  "name": "left upper zone (left apical)",
+                  "id": 76,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "pulmonary infiltrates",
+          "id": 77,
+          "activatable": true,
+          "children": [
+            {
+              "name": "location",
+              "id": 78,
+              "children": [
+                {
+                  "name": "right lower zone",
+                  "id": 79,
+                  "activatable": true
+                },
+                {
+                  "name": "right middle zone",
+                  "id": 80,
+                  "activatable": true
+                },
+                {
+                  "name": "right upper zone",
+                  "id": 81,
+                  "activatable": true
+                },
+                {
+                  "name": "left lower zone",
+                  "id": 82,
+                  "activatable": true
+                },
+                {
+                  "name": "left middle zone",
+                  "id": 83,
+                  "activatable": true
+                },
+                {
+                  "name": "left upper zone",
+                  "id": 84,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "pulmonary edema",
+          "id": 85,
+          "activatable": true,
+          "children": [
+            {
+              "name": "type",
+              "id": 86,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "not specified in the report",
+                  "id": 87,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "interstitial",
+                  "id": 88,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "alveolar",
+                  "id": 89,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "reexpansion",
+                  "id": 90,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "lung hyperexpansion",
+          "id": 91,
+          "activatable": true
+        },
+        {
+          "name": "lung emphysema",
+          "id": 92,
+          "activatable": true
+        },
+        {
+          "name": "pulmonary vascular congestion/volume overload",
+          "id": 93,
+          "activatable": true
+        },
+        {
+          "name": "lung fibrosis",
+          "id": 94,
+          "activatable": true
+        },
+        {
+          "name": "pulmonary nodules/mass",
+          "id": 95,
+          "activatable": true,
+          "children": [
+            {
+              "name": "location",
+              "id": 96,
+              "children": [
+                {
+                  "name": "right lower zone",
+                  "id": 97,
+                  "activatable": true
+                },
+                {
+                  "name": "right middle zone",
+                  "id": 98,
+                  "activatable": true
+                },
+                {
+                  "name": "right upper zone",
+                  "id": 99,
+                  "activatable": true
+                },
+                {
+                  "name": "left lower zone",
+                  "id": 100,
+                  "activatable": true
+                },
+                {
+                  "name": "left middle zone",
+                  "id": 101,
+                  "activatable": true
+                },
+                {
+                  "name": "left upper zone",
+                  "id": 102,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mediastinum",
+      "id": 103,
+      "activatable": false,
+      "children": [
+        {
+          "name": "cardiomegaly",
+          "id": 104,
+          "activatable": true,
+          "children": [
+            {
+              "name": "severity",
+              "id": 105,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "not specified in the report",
+                  "id": 106,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "mild",
+                  "id": 107,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "moderate",
+                  "id": 108,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "marked",
+                  "id": 109,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "mediastinal widening",
+          "id": 110,
+          "activatable": true
+        },
+        {
+          "name": "mediastinal shift",
+          "id": 111,
+          "activatable": true,
+          "children": [
+            {
+              "name": "to the",
+              "id": 112,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "right",
+                  "id": 113,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "left",
+                  "id": 114,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "pneumomediastinum",
+          "id": 115,
+          "activatable": true
+        },
+        {
+          "name": "aortic calcifications",
+          "id": 116,
+          "activatable": true
+        }
+      ]
+    },
+    {
+      "name": "Bones and soft tissue",
+      "id": 117,
+      "activatable": false,
+      "children": [
+        {
+          "name": "degenerative bone changes",
+          "id": 118,
+          "activatable": true
+        },
+        {
+          "name": "rib fractures",
+          "id": 119,
+          "activatable": true,
+          "children": [
+            {
+              "name": "consolidated (old)",
+              "id": 120,
+              "activatable": true
+            },
+            {
+              "name": "location",
+              "id": 121,
+              "single-select-from-children": true,
+              "children": [
+                {
+                  "name": "left",
+                  "id": 122,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "right",
+                  "id": 123,
+                  "single-selectable": true,
+                  "activatable": true
+                },
+                {
+                  "name": "bilateral",
+                  "id": 124,
+                  "single-selectable": true,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "vertebral fractures",
+          "id": 125,
+          "activatable": true,
+          "children": [
+            {
+              "name": "consolidated (old)",
+              "id": 126,
+              "activatable": true
+            },
+            {
+              "name": "location",
+              "id": 127,
+              "activatable": false,
+              "children": [
+                {
+                  "name": "HWS",
+                  "id": 128,
+                  "activatable": true
+                },
+                {
+                  "name": "BWS",
+                  "id": 129,
+                  "activatable": true
+                },
+                {
+                  "name": "LWS",
+                  "id": 130,
+                  "activatable": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "subcutaneous emphysema",
+          "id": 131,
+          "activatable": true
+        }
+      ]
+    },
+    {
+      "name": "Overall impression",
+      "id": 132,
+      "activatable": false,
+      "children": [
+        {
+          "name": "Urgency of action",
+          "id": 133,
+          "activatable": false,
+          "children": [
+            {
+              "name": "Immediate response (call requesting person)",
+              "id": 134,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            },
+            {
+              "name": "Same day reaction needed",
+              "id": 135,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            },
+            {
+              "name": "Action needed (not at the same day)",
+              "id": 136,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            },
+            {
+              "name": "Findings require no reaction",
+              "id": 137,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            }
+          ],
+          "single-select-from-children": true
+        },
+        {
+          "name": "Change to last investigation",
+          "id": 138,
+          "activatable": false,
+          "children": [
+            {
+              "name": "Improvement",
+              "id": 139,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            },
+            {
+              "name": "Worsening",
+              "id": 140,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            },
+            {
+              "name": "No change",
+              "id": 141,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            },
+            {
+              "name": "No prior or comparable investigation",
+              "id": 142,
+              "activatable": true,
+              "children": [],
+              "single-selectable": true
+            }
+          ],
+          "single-select-from-children": true
+        }
+      ]
+    }
+  ]
+}
