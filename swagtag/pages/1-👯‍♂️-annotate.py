@@ -6,7 +6,7 @@ if not 'page' in st.session_state:
 
 from config.load_config import load_dash_conf
 from swagtag.st_utils.sidebar import settings, image_sidebar
-from swagtag.st_utils.st_annotation import st_annotation_box
+from swagtag.st_utils.st_annotation import st_annotation_box, st_annotation_select
 from swagtag.st_utils.st_image import st_image_box
 from swagtag.st_utils.st_report import st_report_box
 from swagtag.st_utils.states_swag_tag import init_session_states
@@ -45,6 +45,12 @@ def app():
                 range(st.session_state['images'].__len__())
             ])
             fig_spots = st_image_box(tabs)
+
+
+        st.markdown('## Annotation ##')
+
+        # select annotations
+        st_annotation_select()
         st_annotation_box()
         # for tab in tabs
         # with c2:

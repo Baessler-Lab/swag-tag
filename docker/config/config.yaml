@@ -3,6 +3,7 @@ dashboard:
   config_id: 'default'
   page_title: 'swag-tag'
   title: 'swag-tag: A Streamlit-based webapp for annotation of medical images and reports.'
+  use_separate_boxes: false
   default_case_no: 0
   default_frac_img: 70
   window_default_range:
